@@ -1,2 +1,2 @@
 # backend
-Django backend for Agendum
+Flask backend for Agendum
