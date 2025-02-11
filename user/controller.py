@@ -8,8 +8,10 @@ bp = Blueprint('user', __name__, url_prefix='/user')
 @bp.route('/', methods=['GET'])
 @bp.route('/<int:id>', methods=['GET'])
 def get(user_id: int = None):
-    if user_service.get(user_id) is not None:
-        return "Success", 200
+    users = user_service.get(user_id)
+
+    if users is not None:
+        return jsonify({"users": users}), 200
     else:
         return jsonify({"error": "User not found"}), 404
 
