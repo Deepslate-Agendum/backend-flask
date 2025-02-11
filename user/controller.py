@@ -20,8 +20,9 @@ def create():
     username = request.json['username']
     password = request.json['password']
 
-    if user_service.create(username, password):
-        return "Success", 200
+    user_id = user_service.create(username, password)
+    if user_id >= 0:
+        return jsonify({"user.id": user_id}), 200
     else:
         return jsonify({"error": "Username already in use"}), 409
 
