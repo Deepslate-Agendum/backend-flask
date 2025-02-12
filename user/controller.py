@@ -1,25 +1,55 @@
 from flask import Blueprint, jsonify, request
+
 import user.service as user_service
 from user_token import service as token_service
 
 bp = Blueprint('user', __name__, url_prefix='/user')
 
 @bp.route('/', methods=['GET'])
-def get_users():
-    return jsonify({"message": "User list"})
+@bp.route('/<int:id>', methods=['GET'])
+def get(user_id: int = None):
+    users = user_service.get(user_id)
 
-@bp.route('/register', methods=['POST'])
-def register():
-    return jsonify({})
+    if users is not None:
+        return jsonify({"users": users}), 200
+    else:
+        return jsonify({"error": "User not found"}), 404
 
-@bp.route('/update', methods=['POST'])
+@bp.route('/create', methods=['POST'])
+def create():
+    username = request.json['username']
+    password = request.json['password']
+
+    user_id = user_service.create(username, password)
+    if user_id >= 0:
+        return jsonify({"user.id": user_id}), 200
+    else:
+        return jsonify({"error": "Username already in use"}), 409
+
+@bp.route('/update', methods=['UPDATE'])
 def update():
-    return jsonify({})
+    user_id = request.json['id']
+    username = request.json['username']
+    password = request.json['password']
+
+    if user_service.update(user_id, username, password):
+        return "Success", 200
+    else:
+        return jsonify({"error": "User not found"}), 404
+
+@bp.route('/delete', methods=['DELETE'])
+def delete():
+    user_id = request.json['id']
+
+    if user_service.delete(user_id):
+        return "Success", 200
+    else:
+        return jsonify({"error": "User not found"}), 404
 
 @bp.route('/login', methods=['POST'])
 def login():
-    return jsonify({})
+    return "Not Implemented", 501
 
 @bp.route('/logout', methods=['POST'])
 def logout():
-    return jsonify({})
+    return "Not Implemented", 501
