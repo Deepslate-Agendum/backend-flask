@@ -20,7 +20,7 @@ def generate_salt() -> str:
 
 def create(username: str = None, password: str = None) -> int:
     """Create a new user."""
-    if user_dao.get_by_username(username):
+    if user_dao.get_by_username(username) is None:
         return -1
 
     salt = generate_salt()
@@ -28,7 +28,7 @@ def create(username: str = None, password: str = None) -> int:
 
 def update(user_id: int, username: str = None, password: str = None) -> bool:
     """Update a user given its ID."""
-    if not user_dao.get_by_id(user_id):
+    if user_dao.get_by_id(user_id) is None:
         return False
 
     salt = user_dao.get_salt(user_id)
@@ -36,7 +36,7 @@ def update(user_id: int, username: str = None, password: str = None) -> bool:
 
 def delete(user_id: int) -> bool:
     """Delete a user given its ID."""
-    if not user_dao.get_by_id(user_id):
+    if user_dao.get_by_id(user_id) is None:
         return False
 
     return user_dao.delete(user_id)
