@@ -15,7 +15,7 @@ def create():
         return jsonify({"error": "Workspace name already in use"}), 409
 
 @bp.route('/', methods=['GET'])
-@bp.route('/<int:id>', methods=['GET'])
+@bp.route('/<int:workspace_id>', methods=['GET'])
 def get(workspace_id: int = None):
     workspaces = ws_service.get(workspace_id)
 
