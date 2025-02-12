@@ -6,7 +6,7 @@ from user_token import service as token_service
 bp = Blueprint('user', __name__, url_prefix='/user')
 
 @bp.route('/', methods=['GET'])
-@bp.route('/<int:id>', methods=['GET'])
+@bp.route('/<int:user_id>', methods=['GET'])
 def get(user_id: int = None):
     users = user_service.get(user_id)
 
