@@ -18,7 +18,7 @@ def create():
         return jsonify({"error": "Create task failed"}), 500
 
 @bp.route('/', methods=['GET'])
-@bp.route('/<int:id>', methods=['GET'])
+@bp.route('/<int:task_id>', methods=['GET'])
 def get_tasks(task_id: int = None):
     tasks = task_service.get(task_id)
 
