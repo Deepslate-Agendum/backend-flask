@@ -32,8 +32,8 @@ class Field(Document):
 class FieldValue(Document):
     value = StringField() # (non-null iff allowed_value is null)
 
-    task = LazyReferenceField('Task') # a field value belongs to 0/1 tasks (non-null iff task type is null)
-    task_type = LazyReferenceField('TaskType') # a field value belongs to 0/1 task types (non-null iff task is null)
+    # task # a field value belongs to 0/1 tasks (non-null iff task type is null)
+    # task_type # a field value belongs to 0/1 task types (non-null iff task is null)
     field = LazyReferenceField('Field', required=True) # a field value belongs to 1 field
     allowed_value = LazyReferenceField('AllowedValue') # a field value is provided by 0/1 allowed values (non-null iff value is null)
 
