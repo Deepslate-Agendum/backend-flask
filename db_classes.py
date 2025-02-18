@@ -1,4 +1,4 @@
-from mongoengine import Document, ListField, StringField, IntField, EmbeddedDocument, LazyReferenceField
+from mongoengine import Document, ListField, StringField, IntField, LazyReferenceField
 
 class ValueType(Document):
     name = StringField(required=True)
@@ -17,7 +17,7 @@ class AllowedValue(Document):
     value_type = LazyReferenceField('ValueType', required=True) # an allowed value is of 1 type
 
 
-class Field(EmbeddedDocument):
+class Field(Document):
     name = StringField(required=True)
     min_values = IntField(required=True)
     max_values = IntField()
@@ -80,7 +80,7 @@ class Task(Document):
     task_type = LazyReferenceField('TaskType', required=True) # a task is of 1 task type
 
 
-class DependencyType(EmbeddedDocument):
+class DependencyType(Document):
     name = StringField(required=True)
     minTasks = IntField(required=True)
     maxTasks = IntField()
