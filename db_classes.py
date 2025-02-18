@@ -41,8 +41,8 @@ class FieldValue(Document):
 class User(Document):
     username = StringField(required=True, unique=True)
     display_name = StringField(required=True)
-    hash_password = StringField(required=True)
-    hash_salt = StringField(required=True, unique=True) # !TODO: check with backend, do we enforce uniqueness?
+    password_hash = StringField(required=True)
+    password_salt = StringField(required=True, unique=True) # !TODO: check with backend, do we enforce uniqueness?
 
     workspaces = ListField(LazyReferenceField('Workspace')) # a user belongs to 1+ workspaces !TODO: default workspace?
     tasks = ListField(LazyReferenceField('Task')) # a user is assigned 0+ tasks
