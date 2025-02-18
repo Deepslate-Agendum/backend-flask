@@ -44,7 +44,7 @@ class User(Document):
     password_hash = StringField(required=True)
     password_salt = StringField(required=True, unique=True) # !TODO: check with backend, do we enforce uniqueness?
 
-    workspaces = ListField(LazyReferenceField('Workspace')) # a user belongs to 1+ workspaces !TODO: default workspace?
+    workspaces = ListField(LazyReferenceField('Workspace')) # a user belongs to 0+ workspaces
     tasks = ListField(LazyReferenceField('Task')) # a user is assigned 0+ tasks
     owned_filtered_views = ListField(LazyReferenceField('FilteredView')) # a user owns 0+ filtered views
     shared_filtered_views = ListField(LazyReferenceField('FilteredView')) # a user has shared with them 0+ filtered views
