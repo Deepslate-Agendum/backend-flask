@@ -11,7 +11,7 @@ def create():
     workspace_id = request.json["workspace_id"]
     due_date = request.json["due_date"]
 
-    task_id = task_service.create(name, description, tags, workspace_id, due_date)
+    task_id = task_service.create(workspace_id, name, description, tags, due_date)
     if task_id >= 0:
         return jsonify({"task.id": task_id})
     else:
@@ -36,7 +36,7 @@ def update():
     workspace_id = request.json["workspace_id"]
     due_date = request.json["due_date"]
 
-    if task_service.update(task_id, name, description, tags, workspace_id, due_date):
+    if task_service.update(task_id, workspace_id, name, description, tags, due_date):
         return "Success", 200
     else:
         return jsonify({"error": "Task not found"}), 404

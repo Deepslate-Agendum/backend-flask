@@ -1,13 +1,29 @@
 import datetime
+import task.dao as task_dao
 
-def create(name: str, description: str, workspace_id: int, tags: list = None, due_date: datetime = None) -> int:
-    return -1
+def create(workspace_id: int, name: str, description: str, tags: list = None, due_date: datetime = None) -> int:
+    """Create a task."""
+    if tags is None: tags = []
+    return task_dao.create(workspace_id, name, description, tags, due_date)
 
-def update(task_id, name, description, tags, workspace_id, due_date) -> bool:
-    return False
+def update(task_id: int, workspace_id: int, name: str = None, description: str = None, tags: list = None, due_date: datetime = None) -> bool:
+    """Update a task."""
+    if tags is None: tags = []
+    if task_dao.get_by_id(task_id) is None:
+        return False
 
-def delete(task_id) -> bool:
-    return False
+    return task_dao.update(workspace_id, name, description, tags, due_date)
 
-def get(task_id) -> list | None:
-    return None
+def delete(task_id: int) -> bool:
+    """Delete a task."""
+    if task_dao.get_by_id(task_id) is None:
+        return False
+
+    return task_dao.delete(task_id)
+
+def get(task_id: int = None) -> list | None:
+    """Get a task by ID, or get all tasks if task_id is None"""
+    if task_id is not None:
+        return task_dao.get_all()
+    else:
+        return task_dao.get_by_id(task_id)
