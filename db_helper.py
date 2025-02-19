@@ -6,7 +6,7 @@ def connectToDatabase():
     host = "mongodb://localhost:27017/mongodb"
     connection = connect(host=host)
     if connection is None:
-        raise Exception("Failed to connect to the database")
+        raise ConnectionError("Failed to connect to the database")
     return connection
 
 
