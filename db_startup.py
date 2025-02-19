@@ -1,5 +1,5 @@
-from DBClasses.classes import TaskType, Field, ValueType, User
-from Helper.dbHelper import connectToDatabase, disconnectFromDatabase
+from db_classes import TaskType, Field, ValueType, User
+from db_helper import connectToDatabase, disconnectFromDatabase
 
 
 
