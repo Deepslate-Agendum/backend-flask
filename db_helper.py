@@ -5,7 +5,7 @@ from db_classes import Field, ValueType
 def connectToDatabase():
     host = "mongodb://localhost:27017/mongodb"
     connection = connect(host=host)
-    if connection == None:
+    if connection is None:
         raise Exception("Failed to connect to the database")
     return connection
 
