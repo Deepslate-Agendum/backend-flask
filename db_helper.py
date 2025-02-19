@@ -1,5 +1,5 @@
 from mongoengine import connect
-from DBClasses.classes import Field, ValueType
+from db_classes import Field, ValueType
 
 # function that opens a connection to the database
 def connectToDatabase():
