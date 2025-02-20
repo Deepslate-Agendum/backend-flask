@@ -1,22 +1,30 @@
 from typing import List, Optional
+
+import sys
+
 from db_classes import User
+from db_helper import ConnectionManager
 
 
+@ConnectionManager.requires_connection
 def get_by_id(id: str) -> Optional[User]:
-    return User.with_id(id)
+    return User.objects.with_id(id)
 
+@ConnectionManager.requires_connection
 def get_by_username(name: str) -> Optional[User]:
     users = User.objects(username=name)
     return users[0] if len(users) > 0 else None
 
+@ConnectionManager.requires_connection
 def get_all() -> List[User]:
     return list(User.objects)
 
-def create(name, password_hash, password_salt) -> User:
+@ConnectionManager.requires_connection
+def create(name: str, password_hash: str, password_salt: str) -> str:
     user = User(
         username=name,
         display_name=name, # TODO: we need a display name
-        workspaces=[], # a user is not initially a member of any workspaces.
+        workspaces=[], # Note: By design, a user is not initially a member of any workspaces.
         tasks=[],
         owned_filtered_views=[],
         shared_filtered_views=[],
@@ -24,27 +32,33 @@ def create(name, password_hash, password_salt) -> User:
         password_salt=password_salt
     )
     user.save()
-    return user
+    return user.id.binary.hex()
 
-def update(id, name, password_hash) -> User:
-    user = User.with_id(id)
+@ConnectionManager.requires_connection
+def update(id: str, name: str, password_hash: str) -> bool:
+    user = User.objects.with_id(id)
     if id is None:
-        raise ValueError(f"No user with id {id}!")
+        sys.stderr.write(f"No user with id {id}!\n")
+        return False
 
-    user.name = name
-    user.password_hash = password_hash
-    return user
+    user_with_name = get_by_username(name)
+    if user_with_name.id != user.id:
+        sys.stderr.write(f"The username '{name}' is already taken!\n")
+        return False
 
-def delete(id: str) -> None:
-    user = User.with_id(id)
+    user.update(
+        username=name,
+        display_name=name, # TODO: we need a display name
+        password_hash=password_hash,
+    )
+    return True
+
+@ConnectionManager.requires_connection
+def delete(id: str) -> bool:
+    user = User.objects.with_id(id)
     if id is None:
-        raise ValueError(f"No user with id {id}!")
+        sys.stderr.write(f"No user with id {id}!\n")
+        return False
 
     user.delete()
-
-def get_salt(id: str) -> str:
-    user = User.with_id(id)
-    if id is None:
-        raise ValueError(f"No user with id {id}!")
-
-    return user.salt
+    return True
