@@ -1,5 +1,8 @@
-from mongoengine import connect
+from functools import wraps
+
+from mongoengine import connect, disconnect
 from db_classes import Field, ValueType
+
 
 # function that opens a connection to the database
 def connectToDatabase():
@@ -10,9 +13,25 @@ def connectToDatabase():
     return connection
 
 
-# function that disconnects from the database
-def disconnectFromDatabase(connection):
-    connection.close()
+class ConnectionManager:
+    def __init__(self):
+        self._connection = None
+
+    def get_connection(self):
+        if self._connection is None:
+            self._connection = connectToDatabase()
+
+        return self._connection
+
+    def requires_connection(self, f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            nonlocal self
+            self.get_connection()
+            return f(*args, **kwargs)
+        return wrapped
+
+ConnectionManager = ConnectionManager()
 
 
 # NOTE: this function is currently being worked on as it is used in AGENDUM-36 which is not complete.
