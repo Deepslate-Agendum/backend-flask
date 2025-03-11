@@ -39,7 +39,7 @@ def create(name, description, workspace_id, tags, due_date):
     # create non-static field values for the new task
     ns_field_values = []
     
-    name_field_value = FieldValue(value = name, task_type = None, field = name_field, allowed_value = None)
+    name_field_value = FieldValue(value=name, field=name_field)
     name_field_value.save()
     ns_field_values.append(name_field_value)
 
