@@ -1,0 +1,3 @@
+[submodule "db-python-util"]
+	path = db-python-util
+	url = https://github.com/Deepslate-Agendum/db-python-util.git
