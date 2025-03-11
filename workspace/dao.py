@@ -10,7 +10,7 @@ def create(name, owner):
     workspace = Workspace(name = name, users = [owner], task_types = [], tasks = [])
     workspace.save()
 
-    return workspace.pk()
+    return workspace.id.binary.hex()
 
 @ConnectionManager.requires_connection
 def get_by_id(workspace_id):
