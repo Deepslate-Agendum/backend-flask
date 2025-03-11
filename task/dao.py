@@ -1,5 +1,5 @@
 #skipping dependency for CRUD operations (02/18)
-from db_python_util.db_classes import Task, TaskType, Field, FieldValue, Workspace
+from db_python_util.db_classes import Task, TaskType, Field, FieldValue, Workspace, ValueType
 from db_python_util.db_helper import createTagField, ConnectionManager
 
 @ConnectionManager.requires_connection
@@ -24,13 +24,8 @@ def create(name, description, workspace_id, tags, due_date):
 
     tag_fields = []
     for tag in tags:
-        field = Field.objects(name = tag)
-        if len(field) == 0:
-            tag_field = createTagField(tag)
-            tag_fields.append(tag_field)
-        else:
-            # TODO in later versions: what to do if multiple fields of the same name exist. ie. one is a tag and another is a field
-            tag_fields.append(field[0])
+        field = Field.objects(name = tag).first() or createTagField(tag)
+        tag_fields.append(field)
 
     due_date_field = Field.objects(name = "Due Date")
     due_date_field = due_date_field[0]
@@ -126,25 +121,15 @@ def update(task_id, name, description, tags, workspace_id, due_date):
             if due_date is not None:
                 field_value_objects.update_one(set__value = due_date)
 
+    # get the tag Value Type
+    tag_value_type = ValueType.objects(name="Tag").first()
+
     # add the new tags to the task
     for tag in new_tags:
-        # check if the tag already exists
-        tag_field = Field.objects(name = tag)
-        if len(tag_field) == 1: # if one exists then create a new field value and add it to the task
-            tag_field_value = FieldValue(value = 'True', task_type = None, field = tag_field[0], allowed_value = None)
-            tag_field_value.save()
-            task.update_one(push__nonstatic_field_values = tag_field_value) 
-        elif len(tag_field) > 1: # if multiple fields with that name exist then grab the one that is a tag
-            for field in tag_field:
-                if field.value_type.name == "Tag":
-                    tag_field_value = FieldValue(value = 'True', task_type = None, field = tag_field[0], allowed_value = None)
-                    tag_field_value.save()
-                    task.update_one(push__nonstatic_field_values = tag_field_value) 
-        else: # if none exist then create a new tag
-            tag_field = createTagField(name = tag)
-            tag_field_value = FieldValue(value = 'True', task_type = None, field = tag_field, allowed_value = None)
-            tag_field_value.save()
-            task.update_one(push__nonstatic_field_values = tag_field_value) 
+        tag_field = Field.objects(name=tag, value_type=tag_value_type).first() or createTagField(name=tag)
+        tag_field_value = FieldValue(value='True', task_type=None, field=tag_field, allowed_value=None)
+        tag_field_value.save()
+        task.update_one(push__nonstatic_field_values=tag_field_value)
 
 
     # get the workspace the task was originally assigned to
