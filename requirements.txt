@@ -2,3 +2,4 @@ flask
 pymongo
 fastapi
 mongoengine
+flask-cors
