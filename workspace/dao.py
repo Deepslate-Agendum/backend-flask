@@ -1,4 +1,4 @@
-from db_classes import Workspace
+#TODO: Update imports with submodules
 
 def create(name, owner):
     """
@@ -7,6 +7,8 @@ def create(name, owner):
 
     workspace = Workspace(name = name, users = [owner], task_types = [], tasks = [])
     workspace.save()
+
+    return workspace.pk()
 
 def get_by_id(workspace_id):
     """
@@ -61,6 +63,8 @@ def update(workspace_id, name, owner):
     if owner is not None:
         workspace.update_one(set__users = [owner])
 
+    return True
+
 def delete(workspace_id):
     """
     Delete a specific Workspace by its ID
@@ -68,6 +72,8 @@ def delete(workspace_id):
 
     workspace = get_by_id(workspace_id)
     if (workspace is None):
-        return
+        return False
 
     workspace.delete()
+
+    return True
