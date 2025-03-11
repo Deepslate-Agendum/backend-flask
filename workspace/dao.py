@@ -1,5 +1,6 @@
-from db_python_util.db_classes import Workspace
+from db_python_util.db_classes import Workspace, TaskType
 from db_python_util.db_helper import ConnectionManager
+from user.dao import get_by_id
 
 @ConnectionManager.requires_connection
 def create(name, owner):
@@ -7,7 +8,11 @@ def create(name, owner):
     Create a new empty Workspace
     """
 
-    workspace = Workspace(name = name, users = [owner], task_types = [], tasks = [])
+    user_owner = get_by_id(owner)
+
+    default_task_type = TaskType.objects(name = "Default").first()
+
+    workspace = Workspace(name = name, users = [user_owner], task_types = [default_task_type], tasks = [])
     workspace.save()
 
     return workspace.id.binary.hex()
