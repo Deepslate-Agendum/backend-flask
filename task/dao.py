@@ -1,7 +1,8 @@
 #skipping dependency for CRUD operations (02/18)
 from db_python_util.db_classes import Task, TaskType, Field, FieldValue, Workspace
-from db_python_util.db_helper import createTagField
+from db_python_util.db_helper import createTagField, ConnectionManager
 
+@ConnectionManager.requires_connection
 def create(name, description, workspace_id, tags, due_date):
     """ 
     Create a new Task
@@ -67,6 +68,7 @@ def create(name, description, workspace_id, tags, due_date):
 
     return workspace.pk()
 
+@ConnectionManager.requires_connection
 def get_by_id(task_id):
     """
     Get the task by id
@@ -80,6 +82,7 @@ def get_by_id(task_id):
 
     return task[0]
 
+@ConnectionManager.requires_connection
 def get_all():
     """
     Get all of the tasks
@@ -90,6 +93,7 @@ def get_all():
 
     return tasks
 
+@ConnectionManager.requires_connection
 def update(task_id, name, description, tags, workspace_id, due_date):
     """
     Update the task by id
@@ -156,6 +160,7 @@ def update(task_id, name, description, tags, workspace_id, due_date):
 
 
 
+@ConnectionManager.requires_connection
 def delete(task_id):
     """
     Delete a task by id
