@@ -1,5 +1,7 @@
-#TODO: Update imports with submodules
+from db_python_util.db_classes import Workspace
+from db_python_util.db_helper import ConnectionManager
 
+@ConnectionManager.requires_connection
 def create(name, owner):
     """
     Create a new empty Workspace
@@ -10,6 +12,7 @@ def create(name, owner):
 
     return workspace.pk()
 
+@ConnectionManager.requires_connection
 def get_by_id(workspace_id):
     """
     Get a specific Workspace by its ID
@@ -23,6 +26,7 @@ def get_by_id(workspace_id):
 
     return workspace[0]
 
+@ConnectionManager.requires_connection
 def get_by_name(name):
     """
     Get a specific Workspace by its name
@@ -40,6 +44,7 @@ def get_by_name(name):
 
     return workspace[0]
 
+@ConnectionManager.requires_connection
 def get_all():
     """
     Get all Workspaces
@@ -49,6 +54,7 @@ def get_all():
 
     return workspaces
 
+@ConnectionManager.requires_connection
 def update(workspace_id, name, owner):
     """
     Update a specific Workspace by its ID
@@ -65,6 +71,7 @@ def update(workspace_id, name, owner):
 
     return True
 
+@ConnectionManager.requires_connection
 def delete(workspace_id):
     """
     Delete a specific Workspace by its ID
