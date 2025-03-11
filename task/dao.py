@@ -1,6 +1,6 @@
 #skipping dependency for CRUD operations (02/18)
-#TODO: Update import using submodules once those are implemented
-
+from db_python_util.db_classes import Task, TaskType, Field, FieldValue, Workspace
+from db_python_util.db_helper import createTagField
 
 def create(name, description, workspace_id, tags, due_date):
     """ 
