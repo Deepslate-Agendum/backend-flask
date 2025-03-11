@@ -6,7 +6,7 @@ from user_token import service as token_service
 bp = Blueprint('user', __name__, url_prefix='/user')
 
 @bp.route('/', methods=['GET'])
-@bp.route('/<int:id>', methods=['GET'])
+@bp.route('/<int:user_id>', methods=['GET'])
 def get(user_id: int = None):
     users = user_service.get(user_id)
 
@@ -26,7 +26,7 @@ def create():
     else:
         return jsonify({"error": "Username already in use"}), 409
 
-@bp.route('/update', methods=['UPDATE'])
+@bp.route('/update', methods=['PATCH'])
 def update():
     user_id = request.json['id']
     username = request.json['username']

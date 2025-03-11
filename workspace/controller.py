@@ -24,7 +24,7 @@ def get(workspace_id: int = None):
     else:
         return jsonify({"error": "Workspace not found"}), 404
 
-@bp.route('/update', methods=['PUT'])
+@bp.route('/update', methods=['PATCH'])
 def update():
     workspace_id = request.json['id']
     name = request.json['name']
