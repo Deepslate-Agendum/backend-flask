@@ -26,7 +26,7 @@ def create():
     else:
         return jsonify({"error": "Username already in use"}), 409
 
-@bp.route('/update', methods=['UPDATE'])
+@bp.route('/update', methods=['PATCH'])
 def update():
     user_id = request.json['id']
     username = request.json['username']
