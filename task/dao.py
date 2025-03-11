@@ -1,6 +1,5 @@
 #skipping dependency for CRUD operations (02/18)
-from db_helper import createTagField
-from db_classes import Task, TaskType, FieldValue, Field, Workspace
+#TODO: Update import using submodules once those are implemented
 
 
 def create(name, description, workspace_id, tags, due_date):
@@ -66,6 +65,7 @@ def create(name, description, workspace_id, tags, due_date):
     workspace = Workspace.objects(id = workspace_id)
     workspace.update_one(push__tasks = task)    
 
+    return workspace.pk()
 
 def get_by_id(task_id):
     """
@@ -77,7 +77,7 @@ def get_by_id(task_id):
     task = Task.objects(id = task_id)
     if len(task) == 0:
         return None
-    
+
     return task[0]
 
 def get_all():
@@ -98,7 +98,7 @@ def update(task_id, name, description, tags, workspace_id, due_date):
 
     task = Task.objects(id = task_id)
     if len(task) == 0:
-        return None
+        return False
 
     new_tags = tags.copy()
 
@@ -152,6 +152,8 @@ def update(task_id, name, description, tags, workspace_id, due_date):
         workspace = Workspace.objects(id = workspace_id)
         workspace.update_one(push__tasks = task[0])
 
+    return True
+
 
 
 def delete(task_id):
@@ -161,7 +163,8 @@ def delete(task_id):
 
     task = get_by_id(task_id)
     if task is None:
-        return
+        return False
 
     task.delete()
 
+    return True
