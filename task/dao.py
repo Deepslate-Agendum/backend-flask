@@ -22,9 +22,12 @@ def create(name, description, workspace_id, tags, due_date):
     description_field = Field.objects(name = "Description")
     description_field = description_field[0]
 
+    # get the tag Value Type
+    tag_value_type = ValueType.objects(name="Tag").first()
+
     tag_fields = []
     for tag in tags:
-        field = Field.objects(name = tag).first() or createTagField(tag)
+        field = Field.objects(name = tag, value_type = tag_value_type).first() or createTagField(tag)
         tag_fields.append(field)
 
     due_date_field = Field.objects(name = "Due Date")
