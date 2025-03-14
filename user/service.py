@@ -1,8 +1,12 @@
-import hashlib, uuid
+from typing import Optional, List
+
+import hashlib
+import uuid
 
 import user.dao as user_dao
+from db_python_util.db_classes import User
 
-def get(user_id: int = None) -> list | None:
+def get(user_id: str = None) -> List[User] | Optional[User]:
     """Get a user by ID, or all users if no ID is given."""
 
     if user_id is not None:
@@ -18,24 +22,24 @@ def generate_salt() -> str:
     """Generate a random salt."""
     return str(uuid.uuid4())
 
-def create(username: str = None, password: str = None) -> int:
+def create(username: str, password: str) -> Optional[str]:
     """Create a new user."""
     if user_dao.get_by_username(username) is not None:
-        return -1
+        return None
 
     salt = generate_salt()
     return user_dao.create(username, hash_password(password + salt), salt)
 
-def update(user_id: int, username: str = None, password: str = None) -> bool:
+def update(user_id: str, username: str, password: str) -> bool:
     """Update a user given its ID."""
     user = user_dao.get_by_id(user_id)
     if user is None:
         return False
 
-    salt = user.get_salt()
+    salt = user.password_salt
     return user_dao.update(user_id, username, hash_password(password + salt))
 
-def delete(user_id: int) -> bool:
+def delete(user_id: str) -> bool:
     """Delete a user given its ID."""
     if user_dao.get_by_id(user_id) is None:
         return False
