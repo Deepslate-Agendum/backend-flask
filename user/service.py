@@ -24,24 +24,16 @@ def generate_salt() -> str:
 
 def create(username: str, password: str) -> Optional[str]:
     """Create a new user."""
-    if user_dao.get_by_username(username) is not None:
-        return None
-
     salt = generate_salt()
     return user_dao.create(username, hash_password(password + salt), salt)
 
-def update(user_id: str, username: str, password: str) -> bool:
+def update(user_id: str, username: str, password: str):
     """Update a user given its ID."""
     user = user_dao.get_by_id(user_id)
-    if user is None:
-        return False
 
     salt = user.password_salt
-    return user_dao.update(user_id, username, hash_password(password + salt))
+    user_dao.update(user_id, username, hash_password(password + salt))
 
-def delete(user_id: str) -> bool:
+def delete(user_id: str):
     """Delete a user given its ID."""
-    if user_dao.get_by_id(user_id) is None:
-        return False
-
-    return user_dao.delete(user_id)
+    user_dao.delete(user_id)
