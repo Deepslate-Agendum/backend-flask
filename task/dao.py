@@ -3,7 +3,7 @@ from db_python_util.db_classes import Task, TaskType, Field, FieldValue, Workspa
 from db_python_util.db_helper import createTagField, ConnectionManager
 
 @ConnectionManager.requires_connection
-def create(name, description, workspace_id, tags, due_date):
+def create(workspace_id: str, name: str, description: str, tags: list = None, due_date: str = None):
     """ 
     Create a new Task
     Currently only supports creating a default Task
@@ -41,16 +41,16 @@ def create(name, description, workspace_id, tags, due_date):
     name_field_value.save()
     ns_field_values.append(name_field_value)
 
-    description_field_value = FieldValue(value = description, task_type = None, field = description_field, allowed_value = None)
+    description_field_value = FieldValue(value = description, field = description_field, allowed_value = None)
     description_field_value.save()
     ns_field_values.append(description_field_value)
 
     for field in tag_fields:
-        tag_field_value = FieldValue(value = 'True', task_type = None, field = field, allowed_value = None)
+        tag_field_value = FieldValue(value = 'True', field = field, allowed_value = None)
         tag_field_value.save()
         ns_field_values.append(tag_field_value)
 
-    due_date_field_value = FieldValue(value = due_date, task_type = None, field = due_date_field, allowed_value = None)
+    due_date_field_value = FieldValue(value = due_date, field = due_date_field, allowed_value = None)
     due_date_field_value.save()
     ns_field_values.append(due_date_field_value)
 
@@ -64,7 +64,7 @@ def create(name, description, workspace_id, tags, due_date):
     workspace = Workspace.objects(id = workspace_id)
     workspace.update_one(push__tasks = task)    
 
-    return workspace.pk()
+    return task
 
 @ConnectionManager.requires_connection
 def get_by_id(task_id):
@@ -89,7 +89,7 @@ def get_all():
 
     tasks = Task.objects()
 
-    return tasks
+    return list(tasks)
 
 @ConnectionManager.requires_connection
 def update(task_id, name, description, tags, workspace_id, due_date):
@@ -130,7 +130,7 @@ def update(task_id, name, description, tags, workspace_id, due_date):
     # add the new tags to the task
     for tag in new_tags:
         tag_field = Field.objects(name=tag, value_type=tag_value_type).first() or createTagField(name=tag)
-        tag_field_value = FieldValue(value='True', task_type=None, field=tag_field, allowed_value=None)
+        tag_field_value = FieldValue(value='True', field=tag_field, allowed_value=None)
         tag_field_value.save()
         task.update_one(push__nonstatic_field_values=tag_field_value)
 
