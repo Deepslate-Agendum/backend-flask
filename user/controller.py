@@ -59,7 +59,14 @@ def delete():
 
 @bp.route('/login', methods=['POST'])
 def login():
-    return "Not Implemented", 501
+    username = request.json['username']
+    password = request.json['password']
+
+    user, token = user_service.login(username, password)
+    return jsonify({
+        "user": json.loads(user.to_json()),  # HACK: same as above, also TODO: if user is null, again depending on AGENDUM-62
+        "token": token,
+    }), 200
 
 @bp.route('/logout', methods=['POST'])
 def logout():

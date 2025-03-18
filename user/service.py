@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 import hashlib
 import uuid
@@ -45,3 +45,13 @@ def delete(user_id: str) -> bool:
         return False
 
     return user_dao.delete(user_id)
+
+def login(username: str, password: str) -> Optional[Tuple[User, str]]:
+    user = user_dao.get_by_username(username)
+    # TODO: please note that this fails if the user isn't found, this is assuming AGENDUM-62 gets merged
+    password_hash = hash_password(password + user.password_salt)
+
+    if password_hash != user.password_hash:
+        return
+
+    return user, "🪙"
