@@ -8,14 +8,18 @@ bp = Blueprint('task', __name__, url_prefix='/task')
 # HACK: serialize task
 def serialize_task(task):
     fields = {"id": task.id.binary.hex()}
+    tags = []
     for field_value in task.nonstatic_field_values:
         if field_value.field.name == "Name":
             fields.update({"title": field_value.value})
         if field_value.field.name == "Description":
             fields.update({"description": field_value.value})
-        fields.update({"tags": []})
+        if field_value.field.value_type.name == "Tag":
+            tags.append(field_value.field.name)
         if field_value.field.name == "Due Date":
             fields.update({"due_date": field_value.value})
+    fields.update({"tags": tags})
+    
     return fields
 
 @bp.route('/create', methods=['POST'])
