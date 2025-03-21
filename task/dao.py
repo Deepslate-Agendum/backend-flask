@@ -59,10 +59,10 @@ def create(workspace_id: str, name: str, description: str, tags: list = None, du
     task = Task(nonstatic_field_values = ns_field_values, dependencies = [], task_type = default_task_type)
     task.save()
 
-
+    # BUG: doesn't update workspace with the task
     # update workspace with task
     workspace = Workspace.objects(id = workspace_id)
-    workspace.update_one(push__tasks = task)    
+    workspace.update_one(push__tasks = task)
 
     return task
 
@@ -92,7 +92,7 @@ def get_all():
     return list(tasks)
 
 @ConnectionManager.requires_connection
-def update(task_id, name, description, tags, workspace_id, due_date):
+def update(task_id, workspace_id, name, description, tags, due_date):
     """
     Update the task by id
     Currently only supports default task updateality
@@ -134,15 +134,16 @@ def update(task_id, name, description, tags, workspace_id, due_date):
         tag_field_value.save()
         task.update_one(push__nonstatic_field_values=tag_field_value)
 
-
+    # BUG: current version doesn't update workspaces properly so will need to update this
     # get the workspace the task was originally assigned to
-    original_workspace = Workspace.objects(tasks__in = [task[0]])
-    original_workspace_id = original_workspace[0].id
-    if original_workspace_id != workspace_id: # if they aren't the same then update the workspace
-        original_workspace.update_one(pull__tasks = task[0])
-        
-        workspace = Workspace.objects(id = workspace_id)
-        workspace.update_one(push__tasks = task[0])
+    original_workspace = Workspace.objects(tasks__in = [task[0]]).first()
+    if original_workspace != None:
+        original_workspace_id = original_workspace.id.binary.hex()
+        if original_workspace_id != workspace_id: # if they aren't the same then update the workspace
+            original_workspace.update_one(pull__tasks = task[0])
+            
+            workspace = Workspace.objects(id = workspace_id)
+            workspace.update_one(push__tasks = task[0])
 
     return True
 

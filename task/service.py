@@ -12,7 +12,7 @@ def update(task_id: int, workspace_id: int, name: str = None, description: str =
     if task_dao.get_by_id(task_id) is None:
         return False
 
-    return task_dao.update(workspace_id, name, description, tags, due_date)
+    return task_dao.update(task_id, workspace_id, name, description, tags, due_date)
 
 def delete(task_id: int) -> bool:
     """Delete a task."""
