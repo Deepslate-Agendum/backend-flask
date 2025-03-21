@@ -81,7 +81,7 @@ def get_by_id(task_id):
     return task[0]
 
 @ConnectionManager.requires_connection
-def get_all():
+def get_all(workspace_id: str):
     """
     Get all of the tasks
     Returns a list of task objects

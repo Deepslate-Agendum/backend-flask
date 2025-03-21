@@ -39,7 +39,9 @@ def create():
 @bp.route('/', methods=['GET'])
 @bp.route('/<int:task_id>', methods=['GET'])
 def get_tasks(task_id: int = None):
-    tasks = task_service.get(task_id)
+    workspace_id = request.json.get('workspace_id')
+
+    tasks = task_service.get(task_id, workspace_id)
 
     # HACK: same deal as in user
     if isinstance(tasks, list):

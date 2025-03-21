@@ -1,3 +1,5 @@
+from typing import Optional
+
 import datetime
 import task.dao as task_dao
 
@@ -21,9 +23,9 @@ def delete(task_id: int) -> bool:
 
     return task_dao.delete(task_id)
 
-def get(task_id: str = None) -> list | None:
+def get(task_id: Optional[str] = None, workspace_id: Optional[str] = None) -> list | None:
     """Get a task by ID, or get all tasks if task_id is None"""
     if task_id is None:
-        return task_dao.get_all()
+        return task_dao.get_all(workspace_id)
     else:
         return task_dao.get_by_id(task_id)
