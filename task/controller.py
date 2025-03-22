@@ -39,7 +39,10 @@ def create():
 @bp.route('/', methods=['GET'])
 @bp.route('/<int:task_id>', methods=['GET'])
 def get_tasks(task_id: int = None):
-    workspace_id = request.json.get('workspace_id')
+    if request.content_type == 'application/json':
+        workspace_id = request.json.get('workspace_id')
+    else:
+        workspace_id = None
 
     tasks = task_service.get(task_id, workspace_id)
 
