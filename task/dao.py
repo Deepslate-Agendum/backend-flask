@@ -1,6 +1,11 @@
 #skipping dependency for CRUD operations (02/18)
+from typing import Optional
+
+
 from db_python_util.db_classes import Task, TaskType, Field, FieldValue, Workspace, ValueType
 from db_python_util.db_helper import createTagField, ConnectionManager
+
+import workspace.dao as workspace_dao
 
 @ConnectionManager.requires_connection
 def create(workspace_id: str, name: str, description: str, tags: list = None, due_date: str = None):
@@ -81,13 +86,18 @@ def get_by_id(task_id):
     return task[0]
 
 @ConnectionManager.requires_connection
-def get_all(workspace_id: str):
+def get_all(workspace_id: Optional[str]):
     """
     Get all of the tasks
     Returns a list of task objects
     """
 
-    tasks = Task.objects()
+    if workspace_id is None:
+        tasks = Task.objects()
+    else:
+        workspace = workspace_dao.get_by_id(workspace_id)
+        task_ids = [task.pk for task in workspace.tasks]
+        tasks = Task.objects(id__in=task_ids) # theoretically this makes one request for all the tasks rather than one per task
 
     return list(tasks)
 
