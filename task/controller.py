@@ -1,7 +1,26 @@
+import json
+
 from flask import Blueprint, jsonify, request
 import task.service as task_service
 
 bp = Blueprint('task', __name__, url_prefix='/task')
+
+# HACK: serialize task
+def serialize_task(task):
+    fields = {"id": task.id.binary.hex()}
+    tags = []
+    for field_value in task.nonstatic_field_values:
+        if field_value.field.name == "Name":
+            fields.update({"title": field_value.value})
+        if field_value.field.name == "Description":
+            fields.update({"description": field_value.value})
+        if field_value.field.value_type.name == "Tag":
+            tags.append(field_value.field.name)
+        if field_value.field.name == "Due Date":
+            fields.update({"due_date": field_value.value})
+    fields.update({"tags": tags})
+    
+    return fields
 
 @bp.route('/create', methods=['POST'])
 def create():
@@ -11,21 +30,26 @@ def create():
     workspace_id = request.json["workspace_id"]
     due_date = request.json["due_date"]
 
-    task_id = task_service.create(workspace_id, name, description, tags, due_date)
-    if task_id >= 0:
-        return jsonify({"task.id": task_id})
+    task = task_service.create(workspace_id, name, description, tags, due_date)
+    if task is not None:
+        return jsonify(serialize_task(task)), 200
     else:
         return jsonify({"error": "Create task failed"}), 500
 
 @bp.route('/', methods=['GET'])
 @bp.route('/<int:task_id>', methods=['GET'])
 def get_tasks(task_id: int = None):
-    tasks = task_service.get(task_id)
+    workspace_id = request.args['workspace_id']
 
-    if tasks is not None:
-        return jsonify({"tasks": tasks}), 200
+    tasks = task_service.get(task_id, workspace_id)
+
+    # HACK: same deal as in user
+    if isinstance(tasks, list):
+        tasks_json = [serialize_task(task) for task in tasks]
     else:
-        return jsonify({"error": "Task not found"}), 404
+        tasks_json = serialize_task(tasks)
+
+    return jsonify({'tasks': tasks_json}), 200
 
 @bp.route('/update', methods=['PUT'])
 def update():

@@ -1,9 +1,14 @@
 #skipping dependency for CRUD operations (02/18)
+from typing import Optional
+
+
 from db_python_util.db_classes import Task, TaskType, Field, FieldValue, Workspace, ValueType
 from db_python_util.db_helper import createTagField, ConnectionManager
 
+import workspace.dao as workspace_dao
+
 @ConnectionManager.requires_connection
-def create(name, description, workspace_id, tags, due_date):
+def create(workspace_id: str, name: str, description: str, tags: list = None, due_date: str = None):
     """ 
     Create a new Task
     Currently only supports creating a default Task
@@ -41,16 +46,16 @@ def create(name, description, workspace_id, tags, due_date):
     name_field_value.save()
     ns_field_values.append(name_field_value)
 
-    description_field_value = FieldValue(value = description, task_type = None, field = description_field, allowed_value = None)
+    description_field_value = FieldValue(value = description, field = description_field, allowed_value = None)
     description_field_value.save()
     ns_field_values.append(description_field_value)
 
     for field in tag_fields:
-        tag_field_value = FieldValue(value = 'True', task_type = None, field = field, allowed_value = None)
+        tag_field_value = FieldValue(value = 'True', field = field, allowed_value = None)
         tag_field_value.save()
         ns_field_values.append(tag_field_value)
 
-    due_date_field_value = FieldValue(value = due_date, task_type = None, field = due_date_field, allowed_value = None)
+    due_date_field_value = FieldValue(value = due_date, field = due_date_field, allowed_value = None)
     due_date_field_value.save()
     ns_field_values.append(due_date_field_value)
 
@@ -59,12 +64,12 @@ def create(name, description, workspace_id, tags, due_date):
     task = Task(nonstatic_field_values = ns_field_values, dependencies = [], task_type = default_task_type)
     task.save()
 
-
+    # BUG: doesn't update workspace with the task
     # update workspace with task
     workspace = Workspace.objects(id = workspace_id)
-    workspace.update_one(push__tasks = task)    
+    workspace.update_one(push__tasks = task)
 
-    return workspace.pk()
+    return task
 
 @ConnectionManager.requires_connection
 def get_by_id(task_id):
@@ -81,18 +86,23 @@ def get_by_id(task_id):
     return task[0]
 
 @ConnectionManager.requires_connection
-def get_all():
+def get_all(workspace_id: Optional[str]):
     """
     Get all of the tasks
     Returns a list of task objects
     """
 
-    tasks = Task.objects()
+    if workspace_id is None:
+        tasks = Task.objects()
+    else:
+        workspace = workspace_dao.get_by_id(workspace_id)
+        task_ids = [task.pk for task in workspace.tasks]
+        tasks = Task.objects(id__in=task_ids) # theoretically this makes one request for all the tasks rather than one per task
 
-    return tasks
+    return list(tasks)
 
 @ConnectionManager.requires_connection
-def update(task_id, name, description, tags, workspace_id, due_date):
+def update(task_id, workspace_id, name, description, tags, due_date):
     """
     Update the task by id
     Currently only supports default task updateality
@@ -130,19 +140,20 @@ def update(task_id, name, description, tags, workspace_id, due_date):
     # add the new tags to the task
     for tag in new_tags:
         tag_field = Field.objects(name=tag, value_type=tag_value_type).first() or createTagField(name=tag)
-        tag_field_value = FieldValue(value='True', task_type=None, field=tag_field, allowed_value=None)
+        tag_field_value = FieldValue(value='True', field=tag_field, allowed_value=None)
         tag_field_value.save()
         task.update_one(push__nonstatic_field_values=tag_field_value)
 
-
+    # BUG: current version doesn't update workspaces properly so will need to update this
     # get the workspace the task was originally assigned to
-    original_workspace = Workspace.objects(tasks__in = [task[0]])
-    original_workspace_id = original_workspace[0].id
-    if original_workspace_id != workspace_id: # if they aren't the same then update the workspace
-        original_workspace.update_one(pull__tasks = task[0])
-        
-        workspace = Workspace.objects(id = workspace_id)
-        workspace.update_one(push__tasks = task[0])
+    original_workspace = Workspace.objects(tasks__in = [task[0]]).first()
+    if original_workspace != None:
+        original_workspace_id = original_workspace.id.binary.hex()
+        if original_workspace_id != workspace_id: # if they aren't the same then update the workspace
+            original_workspace.update_one(pull__tasks = task[0])
+            
+            workspace = Workspace.objects(id = workspace_id)
+            workspace.update_one(push__tasks = task[0])
 
     return True
 

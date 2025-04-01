@@ -1,3 +1,5 @@
+import json
+
 from flask import Blueprint, jsonify, request
 import workspace.service as ws_service
 
@@ -9,20 +11,23 @@ def create():
     owner = request.json['owner']
 
     workspace_id = ws_service.create(name, owner)
-    if workspace_id >= 0:
-        return jsonify({'workspace.id': workspace_id}), 200
+    if workspace_id is not None:
+        return jsonify({'workspace.id': workspace_id}), 200 # TODO: no periods in JSON keys
     else:
         return jsonify({"error": "Workspace name already in use"}), 409
 
 @bp.route('/', methods=['GET'])
-@bp.route('/<int:workspace_id>', methods=['GET'])
-def get(workspace_id: int = None):
+@bp.route('/<string:workspace_id>', methods=['GET'])
+def get(workspace_id: str = None):
     workspaces = ws_service.get(workspace_id)
 
-    if workspaces is not None:
-        return jsonify({'workspaces': workspaces}), 200
+    # HACK: same deal as in user
+    if isinstance(workspaces, list):
+        workspaces_json = [json.loads(workspace.to_json()) for workspace in workspaces]
     else:
-        return jsonify({"error": "Workspace not found"}), 404
+        workspaces_json = json.loads(workspaces.to_json())
+
+    return jsonify({'workspaces': workspaces_json}), 200
 
 @bp.route('/update', methods=['PATCH'])
 def update():
