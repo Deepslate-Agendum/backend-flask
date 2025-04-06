@@ -30,6 +30,24 @@ def create_dependency(workspace_id: str):
         'result': get_fields(dependency),
     }), 200
 
+@blueprint.put('/update')
+def update():
+    dependency_id = request.json['dependency_id']
+    dependee_id = request.json['dependee_id']
+    dependent_id = request.json['dependent_id']
+    manner = request.json['manner']
+
+    try:
+        service.update_dependency(dependency_id, dependee_id, dependent_id, manner)
+    except DBException as e:
+        return jsonify({"error": e.message}), 400 # FIXME: Might need some help on exception handling. not sure what error code to return for these
+
+    return jsonify({
+        'status': 'success',
+        'result': [],
+    }), 200
+
+
 @blueprint.get('/')
 def get_all_depedencies(workspace_id: str):
     return jsonify({
