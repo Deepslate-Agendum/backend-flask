@@ -1,11 +1,6 @@
-from db_python_util.db_classes import Dependency
+from db_python_util.db_classes import Dependency, Field, FieldValue, Task
 from db_python_util.db_exceptions import DBException
 from db_python_util.db_helper import ConnectionManager
-
-@ConnectionManager.requires_connection
-def get_dependency_manner_id(manner_name: str):
-    # TODO: actually get manner id (need to add allowed values in db startup script)
-    return None
 
 @ConnectionManager.requires_connection
 def check_depends_on(dependee_id: str, dependent_id: str) -> str:
@@ -13,10 +8,13 @@ def check_depends_on(dependee_id: str, dependent_id: str) -> str:
     return False
 
 @ConnectionManager.requires_connection
-def create_dependency(dependee_id: str, dependent_id: str, manner_id: str):
+def create_dependency(dependee_id: str, dependent_id: str, manner: str):
+    depended_on_task_object = Task.objects.with_id(dependee_id)
+    dependent_task_object = Task.objects.with_id(dependent_id)
+
     duplicates = Dependency.objects(
-        depended_on_task=dependee_id,
-        dependent_task=dependent_id,
+        depended_on_task=depended_on_task_object,
+        dependent_task=dependent_task_object,
     )
 
     if duplicates.count() > 0:
@@ -25,10 +23,14 @@ def create_dependency(dependee_id: str, dependent_id: str, manner_id: str):
     if check_depends_on(dependee_id, dependent_id):
         raise DBException(f"Task(id={dependee_id}) depends on Task(id={dependent_id})")
 
+    manner_field = Field.objects(name = manner)
+    manner_field_value = FieldValue(value = 'True', field = manner_field, allowed_value = None)
+    manner_field_value.save()
+
     dependency = Dependency(
-        depended_on_task=dependee_id,
-        dependent_task=dependent_id,
-        manner=manner_id,
+        depended_on_task=depended_on_task_object,
+        dependent_task=dependent_task_object,
+        manner=manner_field_value,
     )
     dependency.save()
     return dependency
