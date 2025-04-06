@@ -6,6 +6,7 @@ from flask import (
 
 import dependency.service as service
 from db_python_util.serialization_helper import get_fields
+from db_python_util.db_exceptions import DBException
 
 blueprint = Blueprint(
     name='dependency',
@@ -19,7 +20,10 @@ def create_dependency(workspace_id: str):
     dependent_id = request.json['dependent_id']
     manner = request.json['manner']
 
-    dependency = service.create_dependency(dependee_id, dependent_id, manner)
+    try:
+        dependency = service.create_dependency(dependee_id, dependent_id, manner)
+    except DBException as e:
+        return jsonify({"error": e.message}), 400 # FIXME: Might need some help on exception handling. not sure what error code to return for these
 
     return jsonify({
         'status': 'success',
