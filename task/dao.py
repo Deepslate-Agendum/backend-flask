@@ -4,12 +4,14 @@ from typing import Optional
 
 from db_python_util.db_classes import Task, TaskType, Field, FieldValue, Workspace, ValueType
 from db_python_util.db_helper import createTagField, ConnectionManager
+from db_python_util.db_exceptions import EntityNotFoundException
+from mongoengine.errors import ValidationError
 
 import workspace.dao as workspace_dao
 
 @ConnectionManager.requires_connection
 def create(workspace_id: str, name: str, description: str, tags: list = None, due_date: str = None):
-    """ 
+    """
     Create a new Task
     Currently only supports creating a default Task
     """
@@ -18,7 +20,7 @@ def create(workspace_id: str, name: str, description: str, tags: list = None, du
     # get the default task type for creating a default task
     default_task_type = TaskType.objects(name = "Default")
     default_task_type = default_task_type[0]
-    
+
     # TODO in later versions: split out getting a Field into a seperate function
     # get the fields for creating field values of the default task type
     name_field = Field.objects(name = "Name")
@@ -41,7 +43,7 @@ def create(workspace_id: str, name: str, description: str, tags: list = None, du
     # TODO in later versions: split out creating Field Values into a seperate helper function
     # create non-static field values for the new task
     ns_field_values = []
-    
+
     name_field_value = FieldValue(value=name, field=name_field)
     name_field_value.save()
     ns_field_values.append(name_field_value)
@@ -72,18 +74,25 @@ def create(workspace_id: str, name: str, description: str, tags: list = None, du
     return task
 
 @ConnectionManager.requires_connection
-def get_by_id(task_id):
+def get_by_id(id):
     """
     Get the task by id
     If the task does not exist: -> return None
     Else return the task object
     """
 
-    task = Task.objects(id = task_id)
-    if len(task) == 0:
-        return None
+    try:
+        task = Task.objects.with_id(id)
+    except ValidationError:
+        task = None
 
-    return task[0]
+    if task is None:
+        raise EntityNotFoundException(
+            Task,
+            f"No task with id {id}"
+        )
+
+    return task
 
 @ConnectionManager.requires_connection
 def get_all(workspace_id: Optional[str]):
@@ -151,7 +160,7 @@ def update(task_id, workspace_id, name, description, tags, due_date):
         original_workspace_id = original_workspace.id.binary.hex()
         if original_workspace_id != workspace_id: # if they aren't the same then update the workspace
             original_workspace.update_one(pull__tasks = task[0])
-            
+
             workspace = Workspace.objects(id = workspace_id)
             workspace.update_one(push__tasks = task[0])
 
