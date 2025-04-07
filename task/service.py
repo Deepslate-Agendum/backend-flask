@@ -2,8 +2,25 @@ from typing import Optional
 
 import datetime
 import task.dao as task_dao
+import workspace.dao as workspace_dao
 
-def create(workspace_id: int, name: str, description: str, tags: list = None, due_date: datetime = None):
+import db_python_util.db_exceptions as db_exceptions
+import mongoengine.errors as mongo_errors
+
+def validate_create(workspace_id: int, name: str, description: str, tags: list = None, due_date: datetime = None):
+    errors = []
+    try:
+        if workspace_dao.get_by_id(workspace_id=workspace_id) == None:
+            errors.append(f"{str(workspace_id)} is not a valid workspace ID.")
+    except mongo_errors.ValidationError as e:
+        errors.append(str(e))
+    if name == None:
+        errors.append("Missing name")
+    if description == None:
+        errors.append("Missing description")
+    return errors
+
+def create(workspace_id: str, name: str, description: str, tags: list = None, due_date: datetime = None):
     """Create a task."""
     if tags is None: tags = []
     return task_dao.create(workspace_id, name, description, tags, due_date)

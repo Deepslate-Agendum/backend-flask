@@ -30,6 +30,9 @@ def create():
     workspace_id = request.json["workspace_id"]
     due_date = request.json["due_date"]
 
+    errors = task_service.validate_create(workspace_id, name, description, tags, due_date)
+    if (len(errors) > 0):
+        return jsonify({"Bad request" : errors}), 400
     task = task_service.create(workspace_id, name, description, tags, due_date)
     if task is not None:
         return jsonify(serialize_task(task)), 200
