@@ -11,7 +11,7 @@ def get_tokens():
 def create():
     return jsonify({})
 
-@bp.route('/update', methods=['PUT'])
+@bp.route('/update', methods=['PATCH'])
 def update():
     return jsonify({})
 
