@@ -16,25 +16,25 @@ bp = Blueprint('user', __name__, url_prefix='/user')
 @bp.route('/', methods=['GET'])
 @bp.route('/<string:user_id>', methods=['GET'])
 def get(user_id: str = None):
-    try:
-        users = user_service.get(user_id)
-    except EntityNotFoundException as e:
-        return jsonify({"error": e.message}), 404
-
+    get_user_result = user_service.get(user_id)
+    if isinstance(get_user_result, EntityNotFoundException):
+        return jsonify({"Not found" : str(get_user_result)})
     # HACK: this serializes, deserializes, and then reserializes user. we really need dedicated serialization logic
     # TODO: currently there are no access controls so this leaks password hashes/salts. also we are at the mercy of mongoengine's serialization logic which does weird things
-    if isinstance(users, list):
-        users_json = [json.loads(user.to_json()) for user in users]
+    if isinstance(get_user_result, list):
+        users_json = [json.loads(user.to_json()) for user in get_user_result]
     else:
-        users_json = json.loads(users.to_json())
+        users_json = json.loads(get_user_result.to_json())
 
     return jsonify({"users": users_json}), 200
 
 @bp.route('/create', methods=['POST'])
 def create():
-    username = request.json['username']
-    password = request.json['password']
-
+    try:
+        username = request.json['username']
+        password = request.json['password']
+    except KeyError as e:
+        return jsonify({"Request error" : f"{str(e)} is missing from the request body."}), 40
     try:
         user_id = user_service.create(username, password)
         return jsonify({"user.id": user_id}), 200
@@ -43,10 +43,16 @@ def create():
 
 @bp.route('/update', methods=['PATCH'])
 def update():
-    user_id = request.json['id']
-    username = request.json['username']
-    password = request.json['password']
+    try:
+        user_id = request.json['id']
+        username = request.json['username']
+        password = request.json['password']
+    except KeyError as e:
+        return jsonify({"Request error" : f"{str(e)} is missing from the request body."}), 400
 
+    errors = user_service.validate_update(user_id, username, password)
+    if len(errors) > 0:
+        return jsonify({"Parameter error(s)" : errors}), 400
     try:
         user_service.update(user_id, username, password)
         return "Success", 200
@@ -55,8 +61,13 @@ def update():
 
 @bp.route('/delete', methods=['DELETE'])
 def delete():
-    user_id = request.json['id']
-
+    try:
+        user_id = request.json['id']
+    except KeyError as e:
+        return jsonify({"Request error" : f"{str(e)} is missing from the request body."}), 400
+    errors = user_service.validate_delete(user_id)
+    if len(errors) > 0:
+        return jsonify({"Parameter error(s)" : errors}), 400
     try:
         user_service.delete(user_id)
         return "Success", 200
@@ -65,8 +76,11 @@ def delete():
 
 @bp.route('/login', methods=['POST'])
 def login():
-    username = request.json['username']
-    password = request.json['password']
+    try:
+        username = request.json['username']
+        password = request.json['password']
+    except KeyError as e:
+        return jsonify({"Request error" : f"{str(e)} is missing from the request body."}), 400
 
     user, token = user_service.login(username, password)
     return jsonify({

@@ -5,12 +5,19 @@ import uuid
 
 import user.dao as user_dao
 from db_python_util.db_classes import User
+from db_python_util.db_exceptions import EntityNotFoundException
 
+from mongoengine.errors import ValidationError
 def get(user_id: str = None) -> List[User] | Optional[User]:
     """Get a user by ID, or all users if no ID is given."""
 
     if user_id is not None:
-        return user_dao.get_by_id(user_id)
+        try:
+            return user_dao.get_by_id(user_id)
+        except EntityNotFoundException as e:
+            return e
+        except ValidationError as e:
+            return e
     else:
         return user_dao.get_all()
 
@@ -26,19 +33,34 @@ def create(username: str, password: str) -> Optional[str]:
     """Create a new user."""
     salt = generate_salt()
     return user_dao.create(username, hash_password(password + salt), salt)
-
+def validate_update(user_id: str, username: str, password: str):
+    errors = []
+    if username == None:
+        errors.append("A username was not provided.")
+    if password == None:
+        errors.append("A password was not provided.")
+    user_get_result = get(user_id=user_id)
+    if isinstance(user_get_result, ValidationError):
+        errors.append(f"The user ID {user_id} is invalid.")
+    if isinstance(user_get_result, EntityNotFoundException):
+        errors.append(f"The user ID {user_id} does not correspond to a known user.")
+    return errors
 def update(user_id: str, username: str, password: str):
     """Update a user given its ID."""
     user = user_dao.get_by_id(user_id)
 
     salt = user.password_salt
     user_dao.update(user_id, username, hash_password(password + salt))
-
+def validate_delete(user_id: str):
+    errors = []
+    user_get_result = get(user_id=user_id)
+    if isinstance(user_get_result, ValidationError):
+        errors.append(f"The user ID {user_id} is invalid.")
+    if isinstance(user_get_result, EntityNotFoundException) or user_get_result == None:
+        errors.append(f"The user ID {user_id} does not correspond to a known user.")
+    return errors
 def delete(user_id: str):
     """Delete a user given its ID."""
-    if user_dao.get_by_id(user_id) is None:
-        return False
-
     return user_dao.delete(user_id)
 
 def login(username: str, password: str) -> Optional[Tuple[User, str]]:
