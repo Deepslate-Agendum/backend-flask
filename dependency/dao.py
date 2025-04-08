@@ -1,11 +1,14 @@
+from typing import List
+from dao_shared import get_document_by_id
 from db_python_util.db_classes import Dependency, ValueType, AllowedValue, Task
 from db_python_util.db_exceptions import DBException, EntityNotFoundException
 from db_python_util.db_helper import ConnectionManager
 
 import task.dao as task_dao
+import workspace.dao as workspace_dao
 
 @ConnectionManager.requires_connection
-def get_dependency_manner(manner_name: str):
+def get_manner(manner_name: str) -> AllowedValue:
     manner_type = ValueType.objects(name="Manner").first()
     if manner_type is None:
         raise DBException("Manner ValueType not found! Is the database initialized?")
@@ -17,12 +20,12 @@ def get_dependency_manner(manner_name: str):
     return manner
 
 @ConnectionManager.requires_connection
-def check_depends_on(dependee_id: str, dependent_id: str) -> str:
+def check_depends_on(dependee_id: str, dependent_id: str) -> bool:
     # TODO do some sort of search to determine if there is a transitive dependency between two tasks
     return False
 
 @ConnectionManager.requires_connection
-def create_dependency(dependee_id: str, dependent_id: str, manner_name: str):
+def create(dependee_id: str, dependent_id: str, manner_name: str) -> Dependency:
     depended_on_task_object = task_dao.get_by_id(dependee_id)
     dependent_task_object = task_dao.get_by_id(dependent_id)
 
@@ -37,7 +40,7 @@ def create_dependency(dependee_id: str, dependent_id: str, manner_name: str):
     if check_depends_on(dependee_id, dependent_id):
         raise DBException(f"Task(id={dependee_id}) depends on Task(id={dependent_id})")
 
-    manner = get_dependency_manner(manner_name)
+    manner = get_manner(manner_name)
 
     dependency = Dependency(
         depended_on_task=depended_on_task_object,
@@ -48,5 +51,5 @@ def create_dependency(dependee_id: str, dependent_id: str, manner_name: str):
     return dependency
 
 @ConnectionManager.requires_connection
-def get_all_dependencies():
+def get_all(workspace_id: str) -> List[Dependency]:
     pass

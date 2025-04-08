@@ -21,7 +21,7 @@ def create_dependency(workspace_id: str):
     manner = request.json['manner']
 
     try:
-        dependency = service.create_dependency(dependee_id, dependent_id, manner)
+        dependency = service.create(dependee_id, dependent_id, manner)
     except DBException as e:
         return jsonify({"error": e.message}), 400 # FIXME: Might need some help on exception handling. not sure what error code to return for these
 
