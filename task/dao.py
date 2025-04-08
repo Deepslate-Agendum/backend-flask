@@ -11,7 +11,7 @@ from mongoengine.errors import ValidationError
 import workspace.dao as workspace_dao
 
 @ConnectionManager.requires_connection
-def create(workspace_id: str, name: str, description: str, tags: list = None, due_date: str = None):
+def create(workspace_id: str, name: str, description: str, tags: list = None, due_date: str = None, x_location:float = 0, y_location:float = 0):
     """
     Create a new Task
     Currently only supports creating a default Task
@@ -41,6 +41,9 @@ def create(workspace_id: str, name: str, description: str, tags: list = None, du
     due_date_field = Field.objects(name = "Due Date")
     due_date_field = due_date_field[0]
 
+    x_location_field = Field.objects(name = "X Location").first()
+    y_location_field = Field.objects(name = "Y Location").first()
+
     # TODO in later versions: split out creating Field Values into a seperate helper function
     # create non-static field values for the new task
     ns_field_values = []
@@ -61,6 +64,14 @@ def create(workspace_id: str, name: str, description: str, tags: list = None, du
     due_date_field_value = FieldValue(value = due_date, field = due_date_field, allowed_value = None)
     due_date_field_value.save()
     ns_field_values.append(due_date_field_value)
+
+    x_location_field_value = FieldValue(value = x_location, field = x_location_field, allowed_value = None)
+    x_location_field_value.save()
+    ns_field_values.append(x_location_field_value)
+
+    y_location_field_value = FieldValue(value = y_location, field = y_location_field, allowed_value = None)
+    y_location_field_value.save()
+    ns_field_values.append(y_location_field_value)
 
 
     # create the task
@@ -98,7 +109,7 @@ def get_all(workspace_id: Optional[str]):
     return list(tasks)
 
 @ConnectionManager.requires_connection
-def update(task_id, workspace_id, name, description, tags, due_date):
+def update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location):
     """
     Update the task by id
     Currently only supports default task updateality
@@ -129,6 +140,10 @@ def update(task_id, workspace_id, name, description, tags, due_date):
         if field_value_object.field.name == "Due Date":
             if due_date is not None:
                 field_value_objects.update_one(set__value = due_date)
+        if field_value_object.field.name == "X Location":
+            field_value_objects.update_one(set__value = x_location)
+        if field_value_object.field.name == "Y Location":
+            field_value_objects.update_one(set__value = y_location)
 
     # get the tag Value Type
     tag_value_type = ValueType.objects(name="Tag").first()
