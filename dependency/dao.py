@@ -63,3 +63,7 @@ def get_all(workspace_id: str) -> List[Dependency]:
 @ConnectionManager.requires_connection
 def get_by_id(id: str) -> Dependency:
     return get_document_by_id(Dependency, id)
+
+def delete(dependency_id: str) -> None:
+    dependency = get_by_id(dependency_id)
+    dependency.delete()

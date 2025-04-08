@@ -14,3 +14,6 @@ def get_by_id(dependency_id: str):
 
 def get_multiple_by_id(dependency_ids: List[str]):
     pass
+
+def delete(dependency_id: str):
+    dao.delete(dependency_id)

@@ -65,4 +65,12 @@ def get_dependency(workspace_id: str, dependency_id: str):
 
 @blueprint.delete('/<dependency_id>')
 def delete_dependency(workspace_id: str, dependency_id: str):
-    pass
+    try:
+        service.delete(dependency_id)
+    except DBException as e:
+        return jsonify({
+            "status": "failure",
+            "error": e.message
+        }), 400
+
+    return jsonify({'status': 'success'})
