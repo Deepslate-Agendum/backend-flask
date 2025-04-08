@@ -1,7 +1,7 @@
 from dao_shared import get_document_by_id
 from db_python_util.db_classes import Workspace, TaskType
 from db_python_util.db_helper import ConnectionManager
-from user.dao import get_by_id
+import user.dao as user_dao
 
 @ConnectionManager.requires_connection
 def create(name, owner):
@@ -9,7 +9,7 @@ def create(name, owner):
     Create a new empty Workspace
     """
 
-    user_owner = get_by_id(owner)
+    user_owner = user_dao.get_by_id(owner)
 
     default_task_type = TaskType.objects(name = "Default").first()
 
