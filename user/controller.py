@@ -26,10 +26,11 @@ def get(user_id: str = None):
         else:
             users_json = json.loads(get_user_result.to_json())
         return jsonify({"users": users_json}), 200
-    except ValidationException as e:
-        return jsonify({"Validation error": str(e)}), 400
     except Exception as e:
-        return jsonify({"Unknown error" : str(e)}), 500
+        if isinstance(e, ValidationException):
+            return jsonify({"Validation error": str(e)}), 400
+        else:
+            return jsonify({"Unknown error" : str(e)}), 500
 
 
 @bp.route('/create', methods=['POST'])
@@ -41,10 +42,11 @@ def create():
         return jsonify({"Request error" : f"{e}: {str(e)}"}), 400
     try:
         return jsonify({"user.id": user_service.create(username, password)}), 200
-    except ValidationException as e:
-        return jsonify({"Validation error": str(e)}), 400
     except Exception as e:
-        return jsonify({"Unknown error" : str(e)}), 500
+        if isinstance(e, ValidationException):
+            return jsonify({"Validation error": str(e)}), 400
+        else:
+            return jsonify({"Unknown error" : str(e)}), 500
 
 @bp.route('/update', methods=['PATCH'])
 def update():
@@ -57,10 +59,11 @@ def update():
     try:
         user_service.update(user_id, username, password)
         return "Success", 200
-    except ValidationException as e:
-        return jsonify({"Validation error": str(e)}), 400
     except Exception as e:
-        return jsonify({"Unknown error" : str(e)}), 500
+        if isinstance(e, ValidationException):
+            return jsonify({"Validation error": str(e)}), 400
+        else:
+            return jsonify({"Unknown error" : str(e)}), 500
 
 @bp.route('/delete', methods=['DELETE'])
 def delete():
@@ -71,10 +74,11 @@ def delete():
     try:
         user_service.delete(user_id)
         return "Success", 200
-    except ValidationException as e:
-        return jsonify({"Validation error": str(e)}), 400
     except Exception as e:
-        return jsonify({"Unknown error" : str(e)}), 500
+        if isinstance(e, ValidationException):
+            return jsonify({"Validation error": str(e)}), 400
+        else:
+            return jsonify({"Unknown error" : str(e)}), 500
 
 @bp.route('/login', methods=['POST'])
 def login():
@@ -89,10 +93,11 @@ def login():
             "user": json.loads(user.to_json()),  # HACK: same as above, also TODO: if user is null, again depending on AGENDUM-62
             "token": token,
         }), 200
-    except ValidationException as e:
-        return jsonify({"Validation error": str(e)}), 400
     except Exception as e:
-        return jsonify({"Unknown error" : str(e)}), 500
+        if isinstance(e, ValidationException):
+            return jsonify({"Validation error": str(e)}), 400
+        else:
+            return jsonify({"Unknown error" : str(e)}), 500
 
 @bp.route('/logout', methods=['POST'])
 def logout():

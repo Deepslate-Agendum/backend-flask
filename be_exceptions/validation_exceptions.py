@@ -1,8 +1,8 @@
 class ValidationException(Exception):
     pass
-class MissingException(Exception):
+class MissingException(ValidationException):
     pass
-class AlreadyExistsException(Exception):
+class AlreadyExistsException(ValidationException):
     pass
-class InvalidParameterException(Exception):
+class InvalidParameterException(ValidationException):
     pass
