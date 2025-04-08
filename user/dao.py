@@ -16,7 +16,18 @@ from db_python_util.db_exceptions import (
 
 @ConnectionManager.requires_connection
 def get_by_id(id: str) -> User:
-    return get_document_by_id(User, id)
+    try:
+        user = get_document_by_id(User, id)
+    except ValidationError: # An ObjectId "must be a 12-byte input or a 24-character hex string", but front-end shouldn't need to care about that
+        user = None
+
+    if user is None:
+        raise EntityNotFoundException(
+            User,
+            f"No user with id {id}"
+        )
+
+    return user
 
 @ConnectionManager.requires_connection
 def get_by_username(name: str) -> Optional[User]:
