@@ -6,8 +6,9 @@ import workspace.dao as workspace_dao
 import workspace.service as ws_service
 import be_exceptions.validation_exceptions as validation_exceptions
 
-from db_python_util.db_exceptions import EntityNotFoundException
-from mongoengine.errors import ValidationError
+from db_python_util.db_exceptions.entity_not_found_exception import EntityNotFoundException
+
+
 
 def create(workspace_id: str, name: str, description: str, tags: list = None, due_date: datetime = None):
 
@@ -45,12 +46,12 @@ def get(task_id: Optional[str] = None, workspace_id: Optional[str] = None) -> li
         try:
             ws_service.get(workspace_id)
             return task_dao.get_all(workspace_id)
-        except ValidationError as e:
+        except validation_exceptions.ValidationException as e:
             raise e
     else:
         try:
-            return task_dao.get_by_id(task_id)
+            result = task_dao.get_by_id(task_id)
+            if result == None:
+                raise validation_exceptions.InvalidParameterException(f"The given task ID '{task_id}' is not a valid task.")
         except EntityNotFoundException as e:
             raise validation_exceptions.MissingException(f"The given task ID '{task_id}' does not correspond to an existing task.")
-        except ValidationError as e:
-            raise validation_exceptions.InvalidParameterException(f"The given task ID '{task_id} is not a valid task ID.")

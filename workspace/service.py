@@ -1,10 +1,8 @@
 import be_exceptions.validation_exceptions as validation_exceptions
 import workspace.dao as ws_dao
-import user.dao as user_dao
 
 import user.service as user_service
 
-import mongoengine.errors as me_errors
 from db_python_util.db_exceptions import EntityNotFoundException
 
 # TODO: need to fix type annotations here
@@ -42,8 +40,9 @@ def get(workspace_id: int = None) -> list | None:
         return ws_dao.get_all()
     else:
         try:
-            return ws_dao.get_by_id(workspace_id)
-        except me_errors.ValidationError as e:
-            raise validation_exceptions.InvalidParameterException(f"The provided workspace ID '{workspace_id}' is not a valid workspace ID.")
+            result = ws_dao.get_by_id(workspace_id)
+            if result == None:
+                 raise validation_exceptions.InvalidParameterException(f"The provided workspace ID '{workspace_id}' is not a valid workspace ID.")
+            return result
         except EntityNotFoundException as e:
             raise validation_exceptions.MissingException(f"The provided workspace ID '{workspace_id}' does not correspond to an existing workspace.")

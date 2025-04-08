@@ -7,18 +7,17 @@ import user.dao as user_dao
 from db_python_util.db_classes import User
 from db_python_util.db_exceptions import EntityNotFoundException
 
-from mongoengine.errors import ValidationError
-
 import be_exceptions.validation_exceptions as validation_exceptions
 def get(user_id: str = None) -> List[User] | Optional[User]:
     """Get a user by ID, or all users if no ID is given."""
 
     if user_id is not None:
         try:
-            return user_dao.get_by_id(user_id)
+            result =  user_dao.get_by_id(user_id)
+            if result == None:
+                raise validation_exceptions.MissingException(f"The given user ID '{user_id} does not correspond to an existing user.")
+            return result
         except EntityNotFoundException as e:
-            raise validation_exceptions.MissingException(f"The given user ID '{user_id} does not correspond to an existing user.")
-        except ValidationError as e:
             raise validation_exceptions.InvalidParameterException(f"The given user ID '{user_id} is not a valid user ID.")
     else:
         return user_dao.get_all()
