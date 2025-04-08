@@ -175,7 +175,7 @@ def delete(task_id):
     """
     Delete a task by id
     """
-
+    # TODO: cascading deletes for subtasks
     task = get_by_id(task_id)
     if task is None:
         return False

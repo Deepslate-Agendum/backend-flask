@@ -76,6 +76,7 @@ def delete(workspace_id):
     Delete a specific Workspace by its ID
     """
 
+    # TODO: Delete tasks in the workspace
     workspace = get_by_id(workspace_id)
     if (workspace is None):
         return False
