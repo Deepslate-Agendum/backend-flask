@@ -2,14 +2,17 @@
 from typing import Optional
 
 
+from dao_shared import get_document_by_id
 from db_python_util.db_classes import Task, TaskType, Field, FieldValue, Workspace, ValueType
 from db_python_util.db_helper import createTagField, ConnectionManager
+from db_python_util.db_exceptions import EntityNotFoundException
+from mongoengine.errors import ValidationError
 
 import workspace.dao as workspace_dao
 
 @ConnectionManager.requires_connection
-def create(workspace_id: str, name: str, description: str, tags: list = None, due_date: str = None):
-    """ 
+def create(workspace_id: str, name: str, description: str, tags: list = None, due_date: str = None, x_location:float = 0, y_location:float = 0):
+    """
     Create a new Task
     Currently only supports creating a default Task
     """
@@ -18,7 +21,7 @@ def create(workspace_id: str, name: str, description: str, tags: list = None, du
     # get the default task type for creating a default task
     default_task_type = TaskType.objects(name = "Default")
     default_task_type = default_task_type[0]
-    
+
     # TODO in later versions: split out getting a Field into a seperate function
     # get the fields for creating field values of the default task type
     name_field = Field.objects(name = "Name")
@@ -38,10 +41,13 @@ def create(workspace_id: str, name: str, description: str, tags: list = None, du
     due_date_field = Field.objects(name = "Due Date")
     due_date_field = due_date_field[0]
 
+    x_location_field = Field.objects(name = "X Location").first()
+    y_location_field = Field.objects(name = "Y Location").first()
+
     # TODO in later versions: split out creating Field Values into a seperate helper function
     # create non-static field values for the new task
     ns_field_values = []
-    
+
     name_field_value = FieldValue(value=name, field=name_field)
     name_field_value.save()
     ns_field_values.append(name_field_value)
@@ -59,6 +65,14 @@ def create(workspace_id: str, name: str, description: str, tags: list = None, du
     due_date_field_value.save()
     ns_field_values.append(due_date_field_value)
 
+    x_location_field_value = FieldValue(value = x_location, field = x_location_field, allowed_value = None)
+    x_location_field_value.save()
+    ns_field_values.append(x_location_field_value)
+
+    y_location_field_value = FieldValue(value = y_location, field = y_location_field, allowed_value = None)
+    y_location_field_value.save()
+    ns_field_values.append(y_location_field_value)
+
 
     # create the task
     task = Task(nonstatic_field_values = ns_field_values, dependencies = [], task_type = default_task_type)
@@ -72,18 +86,11 @@ def create(workspace_id: str, name: str, description: str, tags: list = None, du
     return task
 
 @ConnectionManager.requires_connection
-def get_by_id(task_id):
+def get_by_id(id):
     """
     Get the task by id
-    If the task does not exist: -> return None
-    Else return the task object
     """
-
-    task = Task.objects(id = task_id)
-    if len(task) == 0:
-        return None
-
-    return task[0]
+    return get_document_by_id(Task, id)
 
 @ConnectionManager.requires_connection
 def get_all(workspace_id: Optional[str]):
@@ -102,7 +109,7 @@ def get_all(workspace_id: Optional[str]):
     return list(tasks)
 
 @ConnectionManager.requires_connection
-def update(task_id, workspace_id, name, description, tags, due_date):
+def update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location):
     """
     Update the task by id
     Currently only supports default task updateality
@@ -133,6 +140,10 @@ def update(task_id, workspace_id, name, description, tags, due_date):
         if field_value_object.field.name == "Due Date":
             if due_date is not None:
                 field_value_objects.update_one(set__value = due_date)
+        if field_value_object.field.name == "X Location":
+            field_value_objects.update_one(set__value = x_location)
+        if field_value_object.field.name == "Y Location":
+            field_value_objects.update_one(set__value = y_location)
 
     # get the tag Value Type
     tag_value_type = ValueType.objects(name="Tag").first()
@@ -151,7 +162,7 @@ def update(task_id, workspace_id, name, description, tags, due_date):
         original_workspace_id = original_workspace.id.binary.hex()
         if original_workspace_id != workspace_id: # if they aren't the same then update the workspace
             original_workspace.update_one(pull__tasks = task[0])
-            
+
             workspace = Workspace.objects(id = workspace_id)
             workspace.update_one(push__tasks = task[0])
 
@@ -164,7 +175,7 @@ def delete(task_id):
     """
     Delete a task by id
     """
-
+    # TODO: cascading deletes for subtasks
     task = get_by_id(task_id)
     if task is None:
         return False

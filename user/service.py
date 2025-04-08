@@ -50,6 +50,7 @@ def login(username: str, password: str) -> Optional[Tuple[User, str]]:
     if password_hash != user.password_hash:
         return
 
+
     return user, token_service.register_new_token(user)
 
 def logout(token: str) -> None:

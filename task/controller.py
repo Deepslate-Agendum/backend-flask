@@ -18,6 +18,10 @@ def serialize_task(task):
             tags.append(field_value.field.name)
         if field_value.field.name == "Due Date":
             fields.update({"due_date": field_value.value})
+        if field_value.field.name == "X Location":
+            fields.update({"x_location": field_value.value})
+        if field_value.field.name == "Y Location":
+            fields.update({"y_location": field_value.value})
     fields.update({"tags": tags})
     
     return fields
@@ -29,8 +33,10 @@ def create():
     tags = request.json["tags"]
     workspace_id = request.json["workspace_id"]
     due_date = request.json["due_date"]
+    x_location = request.json.get("x_location", "0")
+    y_location = request.json.get("y_location", "0")
 
-    task = task_service.create(workspace_id, name, description, tags, due_date)
+    task = task_service.create(workspace_id, name, description, tags, due_date, x_location, y_location)
     if task is not None:
         return jsonify(serialize_task(task)), 200
     else:
@@ -59,8 +65,10 @@ def update():
     tags = request.json["tags"]
     workspace_id = request.json["workspace_id"]
     due_date = request.json["due_date"]
+    x_location = request.json.get("x_location", "0")
+    y_location = request.json.get("y_location", "0")
 
-    if task_service.update(task_id, workspace_id, name, description, tags, due_date):
+    if task_service.update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location):
         return "Success", 200
     else:
         return jsonify({"error": "Task not found"}), 404
