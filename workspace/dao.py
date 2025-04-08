@@ -1,3 +1,4 @@
+from dao_shared import get_document_by_id
 from db_python_util.db_classes import Workspace, TaskType
 from db_python_util.db_helper import ConnectionManager
 from user.dao import get_by_id
@@ -21,15 +22,8 @@ def create(name, owner):
 def get_by_id(workspace_id):
     """
     Get a specific Workspace by its ID
-    If the Workspace doesn't exist -> return None
-    Else return the Workspace
     """
-
-    workspace = Workspace.objects(id = workspace_id)
-    if len(workspace) == 0:
-        return None
-
-    return workspace[0]
+    return get_document_by_id(Workspace, workspace_id)
 
 @ConnectionManager.requires_connection
 def get_by_name(name):

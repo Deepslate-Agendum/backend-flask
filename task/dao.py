@@ -2,6 +2,7 @@
 from typing import Optional
 
 
+from dao_shared import get_document_by_id
 from db_python_util.db_classes import Task, TaskType, Field, FieldValue, Workspace, ValueType
 from db_python_util.db_helper import createTagField, ConnectionManager
 from db_python_util.db_exceptions import EntityNotFoundException
@@ -77,22 +78,8 @@ def create(workspace_id: str, name: str, description: str, tags: list = None, du
 def get_by_id(id):
     """
     Get the task by id
-    If the task does not exist: -> return None
-    Else return the task object
     """
-
-    try:
-        task = Task.objects.with_id(id)
-    except ValidationError:
-        task = None
-
-    if task is None:
-        raise EntityNotFoundException(
-            Task,
-            f"No task with id {id}"
-        )
-
-    return task
+    return get_document_by_id(Task, id)
 
 @ConnectionManager.requires_connection
 def get_all(workspace_id: Optional[str]):

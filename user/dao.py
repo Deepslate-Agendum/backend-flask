@@ -5,6 +5,7 @@ from mongoengine.errors import (
     NotUniqueError,
 )
 
+from dao_shared import get_document_by_id
 from db_python_util.db_classes import User
 from db_python_util.db_helper import ConnectionManager
 from db_python_util.db_exceptions import (
@@ -15,18 +16,7 @@ from db_python_util.db_exceptions import (
 
 @ConnectionManager.requires_connection
 def get_by_id(id: str) -> User:
-    try:
-        user = User.objects.with_id(id)
-    except ValidationError: # An ObjectId "must be a 12-byte input or a 24-character hex string", but front-end shouldn't need to care about that
-        user = None
-
-    if user is None:
-        raise EntityNotFoundException(
-            User,
-            f"No user with id {id}"
-        )
-
-    return user
+    return get_document_by_id(User, id)
 
 @ConnectionManager.requires_connection
 def get_by_username(name: str) -> Optional[User]:
