@@ -17,11 +17,10 @@ def create():
         return jsonify({"Request error": f"Missing {str(e)} in request body"}), 400
     try:
         return jsonify(ws_service.create(name, owner)), 200
+    except ValidationException as e:
+        return jsonify({"Validation error": str(e)}), 400
     except Exception as e:
-        if isinstance(e, ValidationException):
-            return jsonify({"Validation error": str(e)}), 400
-        else:
-            return jsonify({"Unknown error" : str(e)}), 500
+        return jsonify({"Unknown error" : str(e)}), 500
 
 @bp.route('/', methods=['GET'])
 @bp.route('/<string:workspace_id>', methods=['GET'])
@@ -34,11 +33,10 @@ def get(workspace_id: str = None):
         else:
             workspaces_json = json.loads(workspaces.to_json())
         return jsonify({'workspaces': workspaces_json}), 200
+    except ValidationException as e:
+        return jsonify({"Validation error": str(e)}), 400
     except Exception as e:
-        if isinstance(e, ValidationException):
-            return jsonify({"Validation error": str(e)}), 400
-        else:
-            return jsonify({"Unknown error" : str(e)}), 500
+        return jsonify({"Unknown error" : str(e)}), 500
 
 @bp.route('/update', methods=['PATCH'])
 def update():
@@ -50,11 +48,10 @@ def update():
         return jsonify({"Request error": f"Missing {str(e)} in request body"}), 400
     try:
         return jsonify({ws_service.update(workspace_id, name, owner)}), 200
+    except ValidationException as e:
+        return jsonify({"Validation error": str(e)}), 400
     except Exception as e:
-        if isinstance(e, ValidationException):
-            return jsonify({"Validation error": str(e)}), 400
-        else:
-            return jsonify({"Unknown error" : str(e)}), 500
+        return jsonify({"Unknown error" : str(e)}), 500
 
 @bp.route('/delete', methods=['DELETE'])
 def delete():
@@ -64,9 +61,8 @@ def delete():
         return jsonify({"Request error": f"Missing {str(e)} in request body"}), 400
     try:
         return jsonify(ws_service.delete(workspace_id)), 200
+    except ValidationException as e:
+        return jsonify({"Validation error": str(e)}), 400
     except Exception as e:
-        if isinstance(e, ValidationException):
-            return jsonify({"Validation error": str(e)}), 400
-        else:
-            return jsonify({"Unknown error" : str(e)}), 500
+        return jsonify({"Unknown error" : str(e)}), 500
 
