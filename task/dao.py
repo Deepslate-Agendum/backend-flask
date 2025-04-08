@@ -5,6 +5,15 @@ from typing import Optional
 from db_python_util.db_classes import Task, TaskType, Field, FieldValue, Workspace, ValueType
 from db_python_util.db_helper import createTagField, ConnectionManager
 
+from mongoengine.errors import (
+    ValidationError,
+    NotUniqueError,
+)
+from db_python_util.db_exceptions import (
+    EntityNotFoundException,
+    UsernameTakenException,
+)
+
 import workspace.dao as workspace_dao
 
 @ConnectionManager.requires_connection
@@ -78,10 +87,12 @@ def get_by_id(task_id):
     If the task does not exist: -> return None
     Else return the task object
     """
-
-    task = Task.objects(id = task_id)
-    if len(task) == 0:
-        return None
+    try:
+        task = Task.objects(id = task_id)
+    except ValidationError:
+        task = None
+    if task == None:
+        raise EntityNotFoundException(Task, f"No task with {task_id}")
 
     return task[0]
 
@@ -107,10 +118,7 @@ def update(task_id, workspace_id, name, description, tags, due_date):
     Update the task by id
     Currently only supports default task updateality
     """
-
-    task = Task.objects(id = task_id)
-    if len(task) == 0:
-        return False
+    task = get_by_id(task_id)
 
     new_tags = tags.copy()
 
@@ -166,9 +174,5 @@ def delete(task_id):
     """
 
     task = get_by_id(task_id)
-    if task is None:
-        return False
-
     task.delete()
-
     return True
