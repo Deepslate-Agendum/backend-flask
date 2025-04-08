@@ -52,4 +52,14 @@ def create(dependee_id: str, dependent_id: str, manner_name: str) -> Dependency:
 
 @ConnectionManager.requires_connection
 def get_all(workspace_id: str) -> List[Dependency]:
-    pass
+    workspace = workspace_dao.get_by_id(workspace_id)
+    task_ids = [task.pk for task in workspace.tasks]
+    dependencies = Dependency.objects(
+        dependent_task__in=task_ids,
+        depended_on_task__in=task_ids,
+    )
+    return list(dependencies)
+
+@ConnectionManager.requires_connection
+def get_by_id(id: str) -> Dependency:
+    return get_document_by_id(Dependency, id)

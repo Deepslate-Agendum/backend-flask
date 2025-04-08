@@ -23,7 +23,10 @@ def create_dependency(workspace_id: str):
     try:
         dependency = service.create(dependee_id, dependent_id, manner)
     except DBException as e:
-        return jsonify({"error": e.message}), 400 # FIXME: Might need some help on exception handling. not sure what error code to return for these
+        return jsonify({
+            "status": "failure",
+            "error": e.message
+        }), 400
 
     return jsonify({
         'status': 'success',
@@ -31,15 +34,34 @@ def create_dependency(workspace_id: str):
     }), 200
 
 @blueprint.get('/')
-def get_all_depedencies(workspace_id: str):
+def get_all_dependecies(workspace_id: str):
+    try:
+        dependencies = service.get_all(workspace_id)
+    except DBException as e:
+        return jsonify({
+            "status": "failure",
+            "error": e.message
+        }), 400
+
     return jsonify({
         'status': 'success',
-        'result': [],
+        'result': [get_fields(dependency) for dependency in dependencies],
     }), 200
 
 @blueprint.get('/<dependency_id>')
 def get_dependency(workspace_id: str, dependency_id: str):
-    pass
+    try:
+        dependency = service.get_by_id(dependency_id)
+    except DBException as e:
+        return jsonify({
+            "status": "failure",
+            "error": e.message
+        }), 400
+
+    return jsonify({
+        'status': 'success',
+        'result': get_fields(dependency),
+    })
 
 @blueprint.delete('/<dependency_id>')
 def delete_dependency(workspace_id: str, dependency_id: str):

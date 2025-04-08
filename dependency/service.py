@@ -7,7 +7,10 @@ def create(dependee_id: str, dependent_id: str, manner: str):
     return dependency
 
 def get_all(workspace_id: str):
-    pass
+    return dao.get_all(workspace_id)
+
+def get_by_id(dependency_id: str):
+    return dao.get_by_id(dependency_id)
 
 def get_multiple_by_id(dependency_ids: List[str]):
     pass
