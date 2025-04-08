@@ -33,12 +33,8 @@ def create():
     tags = request.json["tags"]
     workspace_id = request.json["workspace_id"]
     due_date = request.json["due_date"]
-    x_location = request.json["x_location"]
-    if x_location == None:
-        x_location = 0
-    y_location = request.json["y_location"]
-    if y_location == None:
-        y_location = 0
+    x_location = request.json.get("x_location", "0")
+    y_location = request.json.get("y_location", "0")
 
     task = task_service.create(workspace_id, name, description, tags, due_date, x_location, y_location)
     if task is not None:
@@ -69,12 +65,8 @@ def update():
     tags = request.json["tags"]
     workspace_id = request.json["workspace_id"]
     due_date = request.json["due_date"]
-    x_location = request.json["x_location"]
-    if x_location == None:
-        x_location = 0
-    y_location = request.json["y_location"]
-    if y_location == None:
-        y_location = 0
+    x_location = request.json.get("x_location", "0")
+    y_location = request.json.get("y_location", "0")
 
     if task_service.update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location):
         return "Success", 200
