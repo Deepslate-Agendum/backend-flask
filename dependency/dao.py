@@ -6,13 +6,13 @@ import task.dao as task_dao
 
 @ConnectionManager.requires_connection
 def get_dependency_manner(manner_name: str):
-    manner_type = ValueType.objects(name="manner").first()
+    manner_type = ValueType.objects(name="Manner").first()
     if manner_type is None:
         raise DBException("Manner ValueType not found! Is the database initialized?")
 
     manner = AllowedValue.objects(value_type=manner_type, value=manner_name).first()
     if manner is None:
-        raise EntityNotFoundException(f"No Manner with name {manner_name} could be found!")
+        raise EntityNotFoundException(AllowedValue, f"No Manner with name '{manner_name}' could be found!")
 
     return manner
 
