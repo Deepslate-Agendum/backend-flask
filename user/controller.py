@@ -3,14 +3,7 @@ import json
 from flask import Blueprint, jsonify, request
 
 import user.service as user_service
-from user_token import service as token_service
 from be_exceptions.validation_exceptions import ValidationException
-
-from db_python_util.db_exceptions import (
-    DBException,
-    EntityNotFoundException,
-)
-
 
 bp = Blueprint('user', __name__, url_prefix='/user')
 
