@@ -4,6 +4,7 @@ import hashlib
 import uuid
 
 import user.dao as user_dao
+import user_token.service as token_service
 from db_python_util.db_classes import User
 from db_python_util.db_exceptions import EntityNotFoundException
 
@@ -61,4 +62,11 @@ def login(username: str, password: str) -> Optional[Tuple[User, str]]:
     if password_hash != user.password_hash:
         return
 
-    return user, "🪙"
+
+    return user, token_service.register_new_token(user)
+
+def logout(token: str) -> None:
+    try:
+        token_service.release_token(token)
+    except Exception as e:
+        raise Exception("Logout failed")

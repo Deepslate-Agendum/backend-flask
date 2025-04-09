@@ -6,9 +6,11 @@ from be_exceptions.validation_exceptions import ValidationException
 import mongoengine.errors as me_errors
 
 
-bp = Blueprint('workspace', __name__, url_prefix='/workspace')
+workspaces_bp = Blueprint('workspaces', __name__, url_prefix='/workspace')
+workspace_bp = Blueprint('workspace', __name__, url_prefix='/<workspace_id>')
+workspaces_bp.register_blueprint(workspace_bp)
 
-@bp.route('/create', methods=['POST'])
+@workspaces_bp.route('/create', methods=['POST'])
 def create():
     try:
         name = str(request.json['name'])
@@ -22,8 +24,8 @@ def create():
     except Exception as e:
         return jsonify({"Unknown error" : str(e)}), 500
 
-@bp.route('/', methods=['GET'])
-@bp.route('/<string:workspace_id>', methods=['GET'])
+@workspaces_bp.route('/', methods=['GET'])
+@workspace_bp.route('/', methods=['GET'])
 def get(workspace_id: str = None):
     try:
         # HACK: same deal as in user
@@ -38,7 +40,7 @@ def get(workspace_id: str = None):
     except Exception as e:
         return jsonify({"Unknown error" : str(e)}), 500
 
-@bp.route('/update', methods=['PATCH'])
+@workspaces_bp.route('/update', methods=['PATCH'])
 def update():
     try:
         workspace_id = str(request.json['id'])
@@ -53,7 +55,7 @@ def update():
     except Exception as e:
         return jsonify({"Unknown error" : str(e)}), 500
 
-@bp.route('/delete', methods=['DELETE'])
+@workspaces_bp.route('/delete', methods=['DELETE'])
 def delete():
     try:
         workspace_id = str(request.json['id'])

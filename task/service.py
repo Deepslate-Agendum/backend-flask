@@ -10,15 +10,15 @@ from db_python_util.db_exceptions.entity_not_found_exception import EntityNotFou
 
 
 
-def create(workspace_id: str, name: str, description: str, tags: list = None, due_date: datetime = None):
+def create(workspace_id: str, name: str, description: str, tags: list = None, due_date: datetime = None, x_location = 0.0, y_location = 0.0):
     ws_service.get(workspace_id)
     if len(name) == 0:
         raise validation_exceptions.InvalidParameterException("The request task does not have a name.")
     """Create a task."""
     if tags is None: tags = []
-    return task_dao.create(workspace_id, name, description, tags, due_date)
+    return task_dao.create(workspace_id, name, description, tags, due_date, x_location, y_location)
 
-def update(task_id: int, workspace_id: int, name: str = None, description: str = None, tags: list = None, due_date: datetime = None) -> bool:
+def update(task_id: int, workspace_id: int, name: str = None, description: str = None, tags: list = None, due_date: datetime = None, x_location:float = 0, y_location:float = 0) -> bool:
     try:
         ws_service.get(workspace_id)
         get(task_id, workspace_id)
@@ -26,7 +26,7 @@ def update(task_id: int, workspace_id: int, name: str = None, description: str =
         raise e
     """Update a task."""
     if tags is None: tags = []
-    return task_dao.update(task_id, workspace_id, name, description, tags, due_date)
+    return task_dao.update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location)
 
 def delete(task_id: int) -> bool:
     """Delete a task."""

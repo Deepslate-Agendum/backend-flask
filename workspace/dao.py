@@ -1,3 +1,4 @@
+from dao_shared import get_document_by_id
 from db_python_util.db_classes import Workspace, TaskType
 from db_python_util.db_helper import ConnectionManager
 
@@ -40,7 +41,7 @@ def get_by_id(workspace_id):
     If the Workspace doesn't exist -> raise EntityNotFoundException
     Else return the Workspace
     """
-    workspace = Workspace.objects(id = workspace_id)
+    workspace = get_document_by_id(Workspace, workspace_id)
     try:
         if len(workspace) < 1:
             raise EntityNotFoundException(Workspace, f"No workspace with id '{workspace_id}'")

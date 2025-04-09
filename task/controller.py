@@ -20,6 +20,10 @@ def serialize_task(task):
             tags.append(field_value.field.name)
         if field_value.field.name == "Due Date":
             fields.update({"due_date": field_value.value})
+        if field_value.field.name == "X Location":
+            fields.update({"x_location": field_value.value})
+        if field_value.field.name == "Y Location":
+            fields.update({"y_location": field_value.value})
     fields.update({"tags": tags})
     
     return fields
@@ -32,10 +36,12 @@ def create():
         tags = request.json["tags"]
         workspace_id = str(request.json["workspace_id"])
         due_date = request.json["due_date"]
+        x_location = float(request.json.get("x_location", "0"))
+        y_location = float(request.json.get("y_location", "0"))
     except Exception as e:
         return jsonify({"Request error" : f"{e}: {str(e)}"}), 400
     try:
-        return jsonify(serialize_task(task_service.create(workspace_id, name, description, tags, due_date))), 200
+        return jsonify(serialize_task(task_service.create(workspace_id, name, description, tags, due_date, x_location, y_location))), 200
     except ValidationException as e:
         return jsonify({"Validation error": str(e)}), 400
     except Exception as e:
