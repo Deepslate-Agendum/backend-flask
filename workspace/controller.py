@@ -47,7 +47,8 @@ def update():
     except Exception as e:
         return jsonify({"Request error": f"Missing {str(e)} in request body"}), 400
     try:
-        return jsonify({ws_service.update(workspace_id, name, owner)}), 200
+        ws_service.update(workspace_id, name, owner)
+        return "Success", 200
     except ValidationException as e:
         return jsonify({"Validation error": str(e)}), 400
     except Exception as e:

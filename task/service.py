@@ -26,7 +26,7 @@ def update(task_id: int, workspace_id: int, name: str = None, description: str =
         raise e
     """Update a task."""
     if tags is None: tags = []
-    return task_dao.update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location)
+    task_dao.update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location)
 
 def delete(task_id: int) -> bool:
     """Delete a task."""

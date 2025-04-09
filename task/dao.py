@@ -176,10 +176,6 @@ def update(task_id, workspace_id, name, description, tags, due_date, x_location,
             workspace = Workspace.objects(id = workspace_id)
             workspace.update_one(push__tasks = task[0])
 
-    return True
-
-
-
 @ConnectionManager.requires_connection
 def delete(task_id):
     """

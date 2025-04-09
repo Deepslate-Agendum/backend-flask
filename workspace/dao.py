@@ -85,17 +85,11 @@ def update(workspace_id, name, owner):
     """
     Update a specific Workspace by its ID
     """
-
-    workspace = Workspace.objects(id = workspace_id)
-    if len(workspace) == 0:
-        return None
-    
+    workspace = get_by_id(workspace_id)
     if name is not None:
-        workspace.update_one(set__name = name)
+        workspace.update(set__name = name)
     if owner is not None:
-        workspace.update_one(set__users = [owner])
-
-    return True
+        workspace.update(set__users = [owner])
 
 @ConnectionManager.requires_connection
 def delete(workspace_id):
