@@ -11,11 +11,7 @@ from db_python_util.db_exceptions.entity_not_found_exception import EntityNotFou
 
 
 def create(workspace_id: str, name: str, description: str, tags: list = None, due_date: datetime = None):
-
-    try:
-        ws_service.get(workspace_id)
-    except validation_exceptions.ValidationException as e:
-        raise e
+    ws_service.get(workspace_id)
     if len(name) == 0:
         raise validation_exceptions.InvalidParameterException("The request task does not have a name.")
     """Create a task."""
@@ -34,24 +30,16 @@ def update(task_id: int, workspace_id: int, name: str = None, description: str =
 
 def delete(task_id: int) -> bool:
     """Delete a task."""
-    try:
-        get(task_id)
-    except validation_exceptions.ValidationException as e:
-        raise e
+    get(task_id)
     return task_dao.delete(task_id)
 
 def get(task_id: Optional[str] = None, workspace_id: Optional[str] = None) -> list | None:
     """Get a task by ID, or get all tasks if task_id is None"""
     if task_id is None:
-        try:
-            ws_service.get(workspace_id)
-            return task_dao.get_all(workspace_id)
-        except validation_exceptions.ValidationException as e:
-            raise e
+        ws_service.get(workspace_id)
+        return task_dao.get_all(workspace_id)
     else:
         try:
-            result = task_dao.get_by_id(task_id)
-            if result == None:
-                raise validation_exceptions.InvalidParameterException(f"The given task ID '{task_id}' is not a valid task.")
+            return task_dao.get_by_id(task_id)
         except EntityNotFoundException as e:
-            raise validation_exceptions.MissingException(f"The given task ID '{task_id}' does not correspond to an existing task.")
+            raise validation_exceptions.InvalidParameterException(f"The given task ID '{task_id}' is not a valid task.")
