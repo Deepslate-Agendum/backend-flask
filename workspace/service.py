@@ -8,7 +8,7 @@ from db_python_util.db_exceptions import EntityNotFoundException
 # TODO: need to fix type annotations here
 
 def create(name: str, owner: str) -> int:
-    if user_service.get(name) == None:
+    if user_service.get(owner) == None:
         raise validation_exceptions.MissingException(f"The user ID {owner} does not correspond to a known user.")
     if ws_dao.get_by_name(name) is not None:
         raise validation_exceptions.AlreadyExistsException(f"The name {name} is an already existing workspace.")

@@ -43,9 +43,9 @@ def get_by_id(workspace_id):
     """
     workspace = get_document_by_id(Workspace, workspace_id)
     try:
-        if len(workspace) < 1:
+        if workspace == None:
             raise EntityNotFoundException(Workspace, f"No workspace with id '{workspace_id}'")
-        return workspace[0]
+        return workspace
     except ValidationError as e:
         raise EntityNotFoundException(Workspace, f"No workspace with id '{workspace_id}'")
 

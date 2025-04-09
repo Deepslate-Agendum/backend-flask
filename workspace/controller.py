@@ -3,8 +3,6 @@ import json
 from flask import Blueprint, jsonify, request
 import workspace.service as ws_service
 from be_exceptions.validation_exceptions import ValidationException
-import mongoengine.errors as me_errors
-
 
 workspaces_bp = Blueprint('workspaces', __name__, url_prefix='/workspace')
 workspace_bp = Blueprint('workspace', __name__, url_prefix='/<workspace_id>')
