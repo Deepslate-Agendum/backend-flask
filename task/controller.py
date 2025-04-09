@@ -36,8 +36,8 @@ def create():
         tags = request.json["tags"]
         workspace_id = str(request.json["workspace_id"])
         due_date = request.json["due_date"]
-        x_location = float(request.json.get("x_location", "0"))
-        y_location = float(request.json.get("y_location", "0"))
+        x_location = str(request.json.get("x_location", "0"))
+        y_location = str(request.json.get("y_location", "0"))
     except Exception as e:
         return jsonify({"Request error" : f"{e}: {str(e)}"}), 400
     try:
@@ -79,10 +79,12 @@ def update():
         tags = request.json["tags"]
         workspace_id = str(request.json["workspace_id"])
         due_date = request.json["due_date"]
+        x_location = str(request.json.get("x_location", "0"))
+        y_location = str(request.json.get("y_location", "0"))
     except Exception as e:
         return jsonify({"Request error" : f"{str(e)}"}), 400
     try:
-        if task_service.update(task_id, workspace_id, name, description, tags, due_date):
+        if task_service.update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location):
             return "Success", 200
     except ValidationException as e:
         return jsonify({"Validation error": str(e)}), 400

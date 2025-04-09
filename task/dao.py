@@ -102,11 +102,8 @@ def get_by_id(id):
     try:
         task = get_document_by_id(Task, id)
     except ValidationError:
-        task = None
-    if task == None:
-        raise EntityNotFoundException(Task, f"No task with {task_id}")
-
-    return task[0]
+        raise EntityNotFoundException(Task, f"No task with {id}")
+    return task
 
 @ConnectionManager.requires_connection
 def get_all(workspace_id: Optional[str]):
@@ -135,7 +132,7 @@ def update(task_id, workspace_id, name, description, tags, due_date, x_location,
     new_tags = tags.copy()
 
     # go through the current field values and update them
-    for field_value in task[0].nonstatic_field_values:
+    for field_value in task.nonstatic_field_values:
         field_value_objects = FieldValue.objects(id = field_value.id)
         field_value_object = field_value_objects[0]
         if field_value_object.field.name == "Name":
@@ -149,7 +146,7 @@ def update(task_id, workspace_id, name, description, tags, due_date, x_location,
                 new_tags.remove(field_value.field.name)
                 continue
             else: # otherwise delete the tag from the task
-                task.update_one(pull__nonstatic_field_values = field_value)
+                task.update(pull__nonstatic_field_values = field_value)
         if field_value_object.field.name == "Due Date":
             if due_date is not None:
                 field_value_objects.update_one(set__value = due_date)
@@ -166,11 +163,11 @@ def update(task_id, workspace_id, name, description, tags, due_date, x_location,
         tag_field = Field.objects(name=tag, value_type=tag_value_type).first() or createTagField(name=tag)
         tag_field_value = FieldValue(value='True', field=tag_field, allowed_value=None)
         tag_field_value.save()
-        task.update_one(push__nonstatic_field_values=tag_field_value)
+        task.update(push__nonstatic_field_values=tag_field_value)
 
     # BUG: current version doesn't update workspaces properly so will need to update this
     # get the workspace the task was originally assigned to
-    original_workspace = Workspace.objects(tasks__in = [task[0]]).first()
+    original_workspace = Workspace.objects(tasks__in = [task]).first()
     if original_workspace != None:
         original_workspace_id = original_workspace.id.binary.hex()
         if original_workspace_id != workspace_id: # if they aren't the same then update the workspace
