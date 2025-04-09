@@ -47,12 +47,9 @@ def update(user_id: str, username: str, password: str):
     user_dao.update(user_id, username, hash_password(password + salt))
 
 def delete(user_id: str):
-    try:
-        get(user_id)
-    except validation_exceptions.ValidationException as e:
-        raise e
+    get(user_id) # raises, which can be caught by controller
     """Delete a user given its ID."""
-    return user_dao.delete(user_id)
+    user_dao.delete(user_id)
 
 def login(username: str, password: str) -> Optional[Tuple[User, str]]:
     user = user_dao.get_by_username(username)

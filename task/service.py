@@ -2,7 +2,6 @@ from typing import Optional
 
 import datetime
 import task.dao as task_dao
-import workspace.dao as workspace_dao
 import workspace.service as ws_service
 import be_exceptions.validation_exceptions as validation_exceptions
 
@@ -31,7 +30,7 @@ def update(task_id: int, workspace_id: int, name: str = None, description: str =
 def delete(task_id: int) -> bool:
     """Delete a task."""
     get(task_id)
-    return task_dao.delete(task_id)
+    task_dao.delete(task_id)
 
 def get(task_id: Optional[str] = None, workspace_id: Optional[str] = None) -> list | None:
     """Get a task by ID, or get all tasks if task_id is None"""

@@ -1,5 +1,3 @@
-import json
-
 from flask import Blueprint, jsonify, request
 import task.service as task_service
 from be_exceptions.validation_exceptions import ValidationException
@@ -98,8 +96,8 @@ def delete():
     except Exception as e:
         return jsonify({"Request error" : f"{str(e)}"}), 400
     try:
-        if task_service.delete(task_id):
-            return "Success", 200
+        task_service.delete(task_id)
+        return "Success", 200
     except ValidationException as e:
         return jsonify({"Validation error": str(e)}), 400
     except Exception as e:

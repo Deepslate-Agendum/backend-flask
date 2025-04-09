@@ -27,12 +27,9 @@ def update(workspace_id: str, name: str = None, owner: str = None) -> bool:
     return ws_dao.update(workspace_id, name, owner)
 
 def delete(workspace_id: str) -> bool:
-    try:
-        get(workspace_id)
-    except validation_exceptions.ValidationException as e:
-        raise e
+    get(workspace_id)
     """Delete a workspace."""
-    return ws_dao.delete(workspace_id)
+    ws_dao.delete(workspace_id)
 
 def get(workspace_id: int = None) -> list | None:
     """Get a workspace by ID, or all workspaces if no ID is given."""

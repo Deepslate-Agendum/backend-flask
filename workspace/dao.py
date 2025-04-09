@@ -98,5 +98,3 @@ def delete(workspace_id):
     """
     workspace = get_by_id(workspace_id)
     workspace.delete()
-
-    return True

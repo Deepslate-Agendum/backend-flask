@@ -8,11 +8,9 @@ from db_python_util.db_helper import createTagField, ConnectionManager
 
 from mongoengine.errors import (
     ValidationError,
-    NotUniqueError,
 )
 from db_python_util.db_exceptions import (
     EntityNotFoundException,
-    UsernameTakenException,
 )
 
 import workspace.dao as workspace_dao
@@ -184,4 +182,3 @@ def delete(task_id):
     # TODO: cascading deletes for subtasks
     task = get_by_id(task_id)
     task.delete()
-    return True

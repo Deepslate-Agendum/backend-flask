@@ -61,7 +61,8 @@ def delete():
     except Exception as e:
         return jsonify({"Request error": f"Missing {str(e)} in request body"}), 400
     try:
-        return jsonify(ws_service.delete(workspace_id)), 200
+        ws_service.delete(workspace_id)
+        return "Success", 200
     except ValidationException as e:
         return jsonify({"Validation error": str(e)}), 400
     except Exception as e:
