@@ -14,12 +14,9 @@ def get(user_id: str = None) -> List[User] | Optional[User]:
 
     if user_id is not None:
         try:
-            result =  user_dao.get_by_id(user_id)
-            if result == None:
-                raise validation_exceptions.MissingException(f"The given user ID '{user_id} does not correspond to an existing user.")
-            return result
+            return user_dao.get_by_id(user_id)
         except EntityNotFoundException as e:
-            raise validation_exceptions.InvalidParameterException(f"The given user ID '{user_id} is not a valid user ID.")
+            raise validation_exceptions.MissingException(f"The given user ID '{user_id} does not correspond to an existing user.")
     else:
         return user_dao.get_all()
 
@@ -47,7 +44,6 @@ def update(user_id: str, username: str, password: str):
     user_dao.update(user_id, username, hash_password(password + salt))
 
 def delete(user_id: str):
-    get(user_id) # raises, which can be caught by controller
     """Delete a user given its ID."""
     user_dao.delete(user_id)
 
