@@ -1,8 +1,14 @@
 from typing import List
 
 import dependency.dao as dao
+import be_exceptions.validation_exceptions as validation_exceptions
+
+
+ALLOWED_DEPENDENCY_MANNERS = ["Subtask", "Blocking"]
 
 def create(dependee_id: str, dependent_id: str, manner: str):
+    if manner not in ALLOWED_DEPENDENCY_MANNERS:
+        raise validation_exceptions.InvalidParameterException(f"The manner {manner} is not a valid dependency type.")
     dependency = dao.create(dependee_id, dependent_id, manner)
     return dependency
 
