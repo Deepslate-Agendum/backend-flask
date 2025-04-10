@@ -35,11 +35,7 @@ def create(username: str, password: str) -> Optional[str]:
 
 def update(user_id: str, username: str, password: str):
     """Update a user given its ID."""
-    user = None
-    try:
-        user = get(user_id)
-    except validation_exceptions.ValidationException as e:
-        raise e
+    user = get(user_id)
     salt = user.password_salt
     user_dao.update(user_id, username, hash_password(password + salt))
 
