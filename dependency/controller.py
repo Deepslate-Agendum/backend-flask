@@ -38,40 +38,35 @@ def create_dependency(workspace_id: str):
 def get_all_dependencies(workspace_id: str):
     try:
         dependencies = service.get_all(workspace_id)
-    except DBException as e:
         return jsonify({
-            "status": "failure",
-            "error": e.message
-        }), 400
-
-    return jsonify({
-        'status': 'success',
-        'result': [get_fields(dependency) for dependency in dependencies],
-    }), 200
+            'status': 'success',
+            'result': [get_fields(dependency) for dependency in dependencies],
+        }), 200
+    except ValidationException as e:
+        return jsonify({"Validation error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"Unknown error" : str(e)}), 500
 
 @blueprint.get('/<dependency_id>')
 def get_dependency(workspace_id: str, dependency_id: str):
     try:
         dependency = service.get_by_id(dependency_id)
-    except DBException as e:
         return jsonify({
-            "status": "failure",
-            "error": e.message
-        }), 400
-
-    return jsonify({
-        'status': 'success',
-        'result': get_fields(dependency),
-    })
+            'status': 'success',
+            'result': get_fields(dependency),
+        })
+    except ValidationException as e:
+        return jsonify({"Validation error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"Unknown error" : str(e)}), 500
 
 @blueprint.delete('/<dependency_id>')
 def delete_dependency(workspace_id: str, dependency_id: str):
     try:
         service.delete(dependency_id)
-    except DBException as e:
-        return jsonify({
-            "status": "failure",
-            "error": e.message
-        }), 400
+        return jsonify({'status': 'success'})
+    except ValidationException as e:
+        return jsonify({"Validation error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"Unknown error" : str(e)}), 500
 
-    return jsonify({'status': 'success'})
