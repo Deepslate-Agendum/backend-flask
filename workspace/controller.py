@@ -14,7 +14,7 @@ def create():
         name = str(request.json['name'])
         owner = str(request.json['owner'])
     except Exception as e:
-        return jsonify({"Request error": f"Missing {str(e)} in request body"}), 400
+        return jsonify({"Request error" : {str(e)}}), 400
     try:
         return jsonify(ws_service.create(name, owner)), 200
     except ValidationException as e:
@@ -45,7 +45,7 @@ def update():
         name = str(request.json['name'])
         owner = str(request.json['owner'])
     except Exception as e:
-        return jsonify({"Request error": f"Missing {str(e)} in request body"}), 400
+        return jsonify({"Request error" : {str(e)}}), 400
     try:
         ws_service.update(workspace_id, name, owner)
         return "Success", 200
@@ -59,7 +59,7 @@ def delete():
     try:
         workspace_id = str(request.json['id'])
     except Exception as e:
-        return jsonify({"Request error": f"Missing {str(e)} in request body"}), 400
+        return jsonify({"Request error" : {str(e)}}), 400
     try:
         ws_service.delete(workspace_id)
         return "Success", 200

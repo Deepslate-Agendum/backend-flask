@@ -31,7 +31,7 @@ def create():
         username = str(request.json['username'])
         password = str(request.json['password'])
     except Exception as e:
-        return jsonify({"Request error" : f"{e}: {str(e)}"}), 400
+        return jsonify({"Request error" : {str(e)}}), 400
     try:
         return jsonify({"user.id": user_service.create(username, password)}), 200
     except ValidationException as e:
@@ -46,7 +46,8 @@ def update():
         username = str(request.json['username'])
         password = str(request.json['password'])
     except Exception as e:
-        return jsonify({"Request error" : f"{e}: {str(e)}"}), 400
+        return jsonify({"Request error" : {str(e)}}), 400
+
     try:
         user_service.update(user_id, username, password)
         return "Success", 200
@@ -60,7 +61,7 @@ def delete():
     try:
         user_id = str(request.json['id'])
     except Exception as e:
-        return jsonify({"Request error" : f"{e}: {str(e)}"}), 400
+        return jsonify({"Request error" : {str(e)}}), 400
     try:
         user_service.delete(user_id)
         return "Success", 200
@@ -75,7 +76,7 @@ def login():
         username = str(request.json['username'])
         password = str(request.json['password'])
     except Exception as e:
-        return jsonify({"Request error" : f"{e}: {str(e)}"}), 400
+        return jsonify({"Request error" : {str(e)}}), 400
     try:
         user, token = user_service.login(username, password)
         return jsonify({

@@ -37,7 +37,7 @@ def create():
         x_location = str(request.json.get("x_location", "0"))
         y_location = str(request.json.get("y_location", "0"))
     except Exception as e:
-        return jsonify({"Request error" : f"{e}: {str(e)}"}), 400
+        return jsonify({"Request error" : {str(e)}}), 400
     try:
         return jsonify(serialize_task(task_service.create(workspace_id, name, description, tags, due_date, x_location, y_location))), 200
     except ValidationException as e:
@@ -80,7 +80,7 @@ def update():
         x_location = str(request.json.get("x_location", "0"))
         y_location = str(request.json.get("y_location", "0"))
     except Exception as e:
-        return jsonify({"Request error" : f"{str(e)}"}), 400
+        return jsonify({"Request error" : {str(e)}}), 400
     try:
         task_service.update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location)
         return "Success", 200

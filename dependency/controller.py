@@ -22,7 +22,7 @@ def create_dependency(workspace_id: str):
         dependent_id = str(request.json['dependent_id'])
         manner = str(request.json['manner'])
     except Exception as e:
-        return jsonify({"Request error" : f"{e}: {str(e)}"}), 400
+        return jsonify({"Request error" : {str(e)}}), 400
     try:
         dependency = service.create(dependee_id, dependent_id, manner)
         return jsonify({
