@@ -3,13 +3,7 @@ import json
 from flask import Blueprint, jsonify, request
 
 import user.service as user_service
-from user_token import service as token_service
-
-from db_python_util.db_exceptions import (
-    DBException,
-    EntityNotFoundException,
-)
-
+from be_exceptions.validation_exceptions import ValidationException
 
 bp = Blueprint('user', __name__, url_prefix='/user')
 
@@ -17,62 +11,82 @@ bp = Blueprint('user', __name__, url_prefix='/user')
 @bp.route('/<string:user_id>', methods=['GET'])
 def get(user_id: str = None):
     try:
-        users = user_service.get(user_id)
-    except EntityNotFoundException as e:
-        return jsonify({"error": e.message}), 404
+        get_user_result = user_service.get(user_id)
+        # HACK: this serializes, deserializes, and then reserializes user. we really need dedicated serialization logic
+        # TODO: currently there are no access controls so this leaks password hashes/salts. also we are at the mercy of mongoengine's serialization logic which does weird things
+        if isinstance(get_user_result, list):
+            users_json = [json.loads(user.to_json()) for user in get_user_result]
+        else:
+            users_json = json.loads(get_user_result.to_json())
+        return jsonify({"users": users_json}), 200
+    except ValidationException as e:
+        return jsonify({"Validation error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"Unknown error" : str(e)}), 500
 
-    # HACK: this serializes, deserializes, and then reserializes user. we really need dedicated serialization logic
-    # TODO: currently there are no access controls so this leaks password hashes/salts. also we are at the mercy of mongoengine's serialization logic which does weird things
-    if isinstance(users, list):
-        users_json = [json.loads(user.to_json()) for user in users]
-    else:
-        users_json = json.loads(users.to_json())
-
-    return jsonify({"users": users_json}), 200
 
 @bp.route('/create', methods=['POST'])
 def create():
-    username = request.json['username']
-    password = request.json['password']
-
     try:
-        user_id = user_service.create(username, password)
-        return jsonify({"user.id": user_id}), 200
-    except DBException as e:
-        return jsonify({"error": e.message}), 400
+        username = str(request.json['username'])
+        password = str(request.json['password'])
+    except Exception as e:
+        return jsonify({"Request error" : {str(e)}}), 400
+    try:
+        return jsonify({"user.id": user_service.create(username, password)}), 200
+    except ValidationException as e:
+        return jsonify({"Validation error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"Unknown error" : str(e)}), 500
 
 @bp.route('/update', methods=['PATCH'])
 def update():
-    user_id = request.json['id']
-    username = request.json['username']
-    password = request.json['password']
+    try:
+        user_id = str(request.json['id'])
+        username = str(request.json['username'])
+        password = str(request.json['password'])
+    except Exception as e:
+        return jsonify({"Request error" : {str(e)}}), 400
 
     try:
         user_service.update(user_id, username, password)
         return "Success", 200
-    except DBException as e:
-        return jsonify({"error": e.message}), 400
+    except ValidationException as e:
+        return jsonify({"Validation error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"Unknown error" : str(e)}), 500
 
 @bp.route('/delete', methods=['DELETE'])
 def delete():
-    user_id = request.json['id']
-
+    try:
+        user_id = str(request.json['id'])
+    except Exception as e:
+        return jsonify({"Request error" : {str(e)}}), 400
     try:
         user_service.delete(user_id)
         return "Success", 200
-    except DBException as e:
-        return jsonify({"error": e.message}), 400
+    except ValidationException as e:
+        return jsonify({"Validation error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"Unknown error" : str(e)}), 500
 
 @bp.route('/login', methods=['POST'])
 def login():
-    username = request.json['username']
-    password = request.json['password']
-
-    user, token = user_service.login(username, password)
-    return jsonify({
-        "user": json.loads(user.to_json()),  # HACK: same as above, also TODO: if user is null, again depending on AGENDUM-62
-        "token": token,
-    }), 200
+    try:
+        username = str(request.json['username'])
+        password = str(request.json['password'])
+    except Exception as e:
+        return jsonify({"Request error" : {str(e)}}), 400
+    try:
+        user, token = user_service.login(username, password)
+        return jsonify({
+            "user": json.loads(user.to_json()),  # HACK: same as above, also TODO: if user is null, again depending on AGENDUM-62
+            "token": token,
+        }), 200
+    except ValidationException as e:
+        return jsonify({"Validation error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"Unknown error" : str(e)}), 500
 
 @bp.route('/logout', methods=['POST'])
 def logout():
