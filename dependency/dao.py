@@ -48,6 +48,10 @@ def create(dependee_id: str, dependent_id: str, manner_name: str) -> Dependency:
         manner=manner,
     )
     dependency.save()
+
+    depended_on_task_object.update(push__dependencies=dependency)
+    dependent_task_object.update(push__dependencies=dependency)
+
     return dependency
 
 @ConnectionManager.requires_connection
