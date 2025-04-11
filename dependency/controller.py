@@ -34,9 +34,14 @@ def create_dependency(workspace_id: str):
     }), 200
 
 @blueprint.get('/')
-def get_all_dependecies(workspace_id: str):
+def get_dependencies(workspace_id: str):
     try:
-        dependencies = service.get_all(workspace_id)
+        ids = request.args.get('ids')
+        if ids is None:
+            dependencies = service.get_all(workspace_id)
+        else:
+            ids = ids.split(',')
+            dependencies = service.get_multiple_by_id(ids)
     except DBException as e:
         return jsonify({
             "status": "failure",
