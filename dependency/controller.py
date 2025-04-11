@@ -34,7 +34,7 @@ def create_dependency(workspace_id: str):
     }), 200
 
 @blueprint.get('/')
-def get_dependecies(workspace_id: str):
+def get_dependencies(workspace_id: str):
     try:
         ids = request.args.get('ids')
         if ids is None:
