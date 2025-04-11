@@ -16,7 +16,7 @@ def get(user_id: str = None) -> List[User] | Optional[User]:
         try:
             return user_dao.get_by_id(user_id)
         except EntityNotFoundException as e:
-            raise validation_exceptions.MissingException(f"The given user ID '{user_id} does not correspond to an existing user.")
+            raise validation_exceptions.MissingException(f"The given user ID '{user_id}' does not correspond to an existing user.")
     else:
         return user_dao.get_all()
 
