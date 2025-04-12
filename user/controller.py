@@ -3,9 +3,9 @@ import json
 from flask import Blueprint, jsonify, request
 
 import user.service as user_service
-import be_exceptions.error_messages as errors
+import be_utilities.error_messages as errors
 
-from be_exceptions.validation_exceptions import ValidationException
+from be_utilities.validation_exceptions import ValidationException
 
 bp = Blueprint('user', __name__, url_prefix='/user')
 

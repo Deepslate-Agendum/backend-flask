@@ -2,8 +2,8 @@ import json
 
 from flask import Blueprint, jsonify, request
 import workspace.service as ws_service
-from be_exceptions.validation_exceptions import ValidationException
-import be_exceptions.error_messages as errors
+from be_utilities.validation_exceptions import ValidationException
+import be_utilities.error_messages as errors
 
 
 workspaces_bp = Blueprint('workspaces', __name__, url_prefix='/workspace')
@@ -15,7 +15,7 @@ def create():
     try:
         name = str(request.json['name'])
         owner = str(request.json['owner'])
-    except Exception as e:
+    except KeyError as e:
         return jsonify({errors.REQUEST_ERROR : {str(e)}}), 400
     try:
         return jsonify(ws_service.create(name, owner)), 200
@@ -46,7 +46,7 @@ def update():
         workspace_id = str(request.json['id'])
         name = str(request.json['name'])
         owner = str(request.json['owner'])
-    except Exception as e:
+    except KeyError as e:
         return jsonify({errors.REQUEST_ERROR : {str(e)}}), 400
     try:
         ws_service.update(workspace_id, name, owner)
@@ -60,7 +60,7 @@ def update():
 def delete():
     try:
         workspace_id = str(request.json['id'])
-    except Exception as e:
+    except KeyError as e:
         return jsonify({errors.REQUEST_ERROR : {str(e)}}), 400
     try:
         ws_service.delete(workspace_id)

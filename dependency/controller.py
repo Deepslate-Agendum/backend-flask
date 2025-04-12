@@ -3,11 +3,11 @@ from flask import (
     request,
     jsonify
 )
-import be_exceptions.error_messages as errors
+import be_utilities.error_messages as errors
 import dependency.service as service
 from db_python_util.serialization_helper import get_fields
 from db_python_util.db_exceptions import DBException
-from be_exceptions.validation_exceptions import ValidationException
+from be_utilities.validation_exceptions import ValidationException
 
 blueprint = Blueprint(
     name='dependency',

@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 import task.service as task_service
-from be_exceptions.validation_exceptions import ValidationException
-import be_exceptions.error_messages as errors
+from be_utilities.validation_exceptions import ValidationException
+import be_utilities.error_messages as errors
 
 
 bp = Blueprint('task', __name__, url_prefix='/task')
@@ -36,7 +36,7 @@ def create():
         due_date = request.json["due_date"]
         x_location = str(request.json.get("x_location", "0"))
         y_location = str(request.json.get("y_location", "0"))
-    except Exception as e:
+    except KeyError as e:
         return jsonify({errors.REQUEST_ERROR : {str(e)}}), 400
     try:
         return jsonify(serialize_task(task_service.create(workspace_id, name, description, tags, due_date, x_location, y_location))), 200
@@ -51,7 +51,7 @@ def create():
 def get_tasks(task_id: int = None):
     try:
         workspace_id = str(request.args['workspace_id'])
-    except Exception as e:
+    except KeyError as e:
         workspace_id = None
     try:
         tasks = task_service.get(task_id, workspace_id)
@@ -79,7 +79,7 @@ def update():
         due_date = request.json["due_date"]
         x_location = str(request.json.get("x_location", "0"))
         y_location = str(request.json.get("y_location", "0"))
-    except Exception as e:
+    except KeyError as e:
         return jsonify({errors.REQUEST_ERROR : {str(e)}}), 400
     try:
         task_service.update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location)
@@ -93,7 +93,7 @@ def update():
 def delete():
     try:
         task_id = str(request.json["id"])
-    except Exception as e:
+    except KeyError as e:
         return jsonify({errors.REQUEST_ERROR : f"{str(e)}"}), 400
     try:
         task_service.delete(task_id)

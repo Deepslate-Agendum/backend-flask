@@ -8,7 +8,7 @@ import user_token.service as token_service
 from db_python_util.db_classes import User
 from db_python_util.db_exceptions import EntityNotFoundException
 
-import be_exceptions.validation_exceptions as validation_exceptions
+import be_utilities.validation_exceptions as validation_exceptions
 def get(user_id: str = None) -> List[User] | Optional[User]:
     """Get a user by ID, or all users if no ID is given."""
 
