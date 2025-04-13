@@ -43,3 +43,6 @@ def get_documents_by_ids(collection: type, ids: List[str], require_all: bool=Fal
         )
 
     return documents
+
+def serialize_id(reference):
+    return reference.binary.hex()
