@@ -20,7 +20,7 @@ def get(user_id: str = None):
             users_json = [json.loads(user.to_json()) for user in get_user_result]
         else:
             users_json = json.loads(get_user_result.to_json())
-        return responses.success_response("get_users", users_json)
+        return responses.success_response("get_users", users_json, "users")
     except ValidationException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
@@ -35,7 +35,7 @@ def create():
     except KeyError as e:
         return responses.request_error_response(str(e), type=type(e).__name__)
     try:
-        return responses.success_response("create_user", {"user.id": user_service.create(username, password)})
+        return responses.success_response("create_user", user_service.create(username, password), object_name="user_id")
     except ValidationException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
@@ -81,7 +81,7 @@ def login():
     try:
         user, token = user_service.login(username, password)
         return responses.success_response("login_user",
-        {"user": json.loads(user.to_json()), "token": token})
+        {"user": json.loads(user.to_json()), "token": token}, object_name="user")
     except ValidationException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:

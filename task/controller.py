@@ -43,7 +43,7 @@ def create():
         return responses.request_error_response(str(e))
     try:
         return responses.success_response("create_task",
-            serialize_task(task_service.create(workspace_id, name, description, tags, due_date, x_location, y_location)))
+            serialize_task(task_service.create(workspace_id, name, description, tags, due_date, x_location, y_location)), object_name="task")
     except ValidationException as e:
         return responses.validation_error_response(str(e), e.__qualname__)
     except Exception as e:
@@ -65,7 +65,7 @@ def get_tasks(task_id: int = None):
             tasks_json = [serialize_task(task) for task in tasks]
         else:
             tasks_json = serialize_task(tasks)
-        return responses.success_response("get_tasks", tasks_json)
+        return responses.success_response("get_tasks", tasks_json, object_name="tasks")
     except ValidationException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
@@ -100,7 +100,7 @@ def delete():
         return responses.request_error_response(str(e), type=type(e).__name__)
     try:
         task_service.delete(task_id)
-        return "Success", 200
+        return responses.success_response(message="delete_task")
     except ValidationException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:

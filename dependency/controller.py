@@ -49,8 +49,9 @@ def get_dependencies(workspace_id: str):
         else:
             ids = ids.split(',')
             dependencies = service.get_multiple_by_id(ids)
-        return responses.success_response("get_all_dependencies",
-            dependencies)
+
+        return responses.success_response("get_dependencies",
+            [responsify_dependency(dependency) for dependency in dependencies], object_name="dependency")
     except ValidationException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
