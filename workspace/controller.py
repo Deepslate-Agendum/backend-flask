@@ -3,7 +3,7 @@ import json
 from flask import Blueprint, jsonify, request
 import workspace.service as ws_service
 from be_utilities.validation_exceptions import ValidationException
-import be_utilities.error_messages as errors
+import be_utilities.response_model as responses
 
 
 workspaces_bp = Blueprint('workspaces', __name__, url_prefix='/workspace')
@@ -16,13 +16,13 @@ def create():
         name = str(request.json['name'])
         owner = str(request.json['owner'])
     except KeyError as e:
-        return jsonify({errors.REQUEST_ERROR : {str(e)}}), 400
+        return responses.request_error_response(e)
     try:
-        return jsonify(ws_service.create(name, owner)), 200
+        return responses.success_response("create_workspace", {"workspace_id" : ws_service.create(name, owner)})
     except ValidationException as e:
-        return jsonify({errors.VALIDATION_ERROR: str(e)}), 400
+        return responses.validation_error_response(e)
     except Exception as e:
-        return jsonify({errors.UNKNOWN_ERROR : str(e)}), 500
+        return responses.unknown_error_response(e)
 
 @workspaces_bp.route('/', methods=['GET'])
 @workspace_bp.route('/', methods=['GET'])
@@ -34,11 +34,11 @@ def get(workspace_id: str = None):
             workspaces_json = [json.loads(workspace.to_json()) for workspace in workspaces]
         else:
             workspaces_json = json.loads(workspaces.to_json())
-        return jsonify({'workspaces': workspaces_json}), 200
+        return responses.success_response("get_workspaces", workspaces_json)
     except ValidationException as e:
-        return jsonify({errors.VALIDATION_ERROR: str(e)}), 400
+        return responses.validation_error_response(e)
     except Exception as e:
-        return jsonify({errors.UNKNOWN_ERROR : str(e)}), 500
+        return responses.unknown_error_response(e)
 
 @workspaces_bp.route('/update', methods=['PATCH'])
 def update():
@@ -47,26 +47,26 @@ def update():
         name = str(request.json['name'])
         owner = str(request.json['owner'])
     except KeyError as e:
-        return jsonify({errors.REQUEST_ERROR : {str(e)}}), 400
+        return responses.request_error_response(e)
     try:
         ws_service.update(workspace_id, name, owner)
-        return "Success", 200
+        return responses.success_response("update_workspace")
     except ValidationException as e:
-        return jsonify({errors.VALIDATION_ERROR: str(e)}), 400
+        return responses.validation_error_response(e)
     except Exception as e:
-        return jsonify({errors.UNKNOWN_ERROR : str(e)}), 500
+        return responses.unknown_error_response(e)
 
 @workspaces_bp.route('/delete', methods=['DELETE'])
 def delete():
     try:
         workspace_id = str(request.json['id'])
     except KeyError as e:
-        return jsonify({errors.REQUEST_ERROR : {str(e)}}), 400
+        return responses.request_error_response(e)
     try:
         ws_service.delete(workspace_id)
-        return "Success", 200
+        return responses.success_response("delete_workspace")
     except ValidationException as e:
-        return jsonify({errors.VALIDATION_ERROR: str(e)}), 400
+        return responses.validation_error_response(e)
     except Exception as e:
-        return jsonify({errors.UNKNOWN_ERROR : str(e)}), 500
+        return responses.unknown_error_response(e)
 

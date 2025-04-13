@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 import task.service as task_service
 from be_utilities.validation_exceptions import ValidationException
-import be_utilities.error_messages as errors
+import be_utilities.response_model as responses
 
 
 bp = Blueprint('task', __name__, url_prefix='/task')
@@ -37,13 +37,14 @@ def create():
         x_location = str(request.json.get("x_location", "0"))
         y_location = str(request.json.get("y_location", "0"))
     except KeyError as e:
-        return jsonify({errors.REQUEST_ERROR : {str(e)}}), 400
+        return responses.request_error_response(e)
     try:
-        return jsonify(serialize_task(task_service.create(workspace_id, name, description, tags, due_date, x_location, y_location))), 200
+        return responses.success_response("create_task",
+            serialize_task(task_service.create(workspace_id, name, description, tags, due_date, x_location, y_location)))
     except ValidationException as e:
-        return jsonify({errors.VALIDATION_ERROR: str(e)}), 400
+        return responses.validation_error_response(e)
     except Exception as e:
-        return jsonify({errors.UNKNOWN_ERROR : str(e)}), 500
+        return responses.unknown_error_response(e)
 
 
 @bp.route('/', methods=['GET'])
@@ -61,12 +62,11 @@ def get_tasks(task_id: int = None):
             tasks_json = [serialize_task(task) for task in tasks]
         else:
             tasks_json = serialize_task(tasks)
-
-        return jsonify({'tasks': tasks_json}), 200
+        return responses.success_response("get_tasks", tasks_json)
     except ValidationException as e:
-        return jsonify({errors.VALIDATION_ERROR: str(e)}), 400
+        return responses.validation_error_response(e)
     except Exception as e:
-        return jsonify({errors.UNKNOWN_ERROR : str(e)}), 500
+        return responses.unknown_error_response(e)
 
 @bp.route('/update', methods=['PUT'])
 def update():
@@ -80,25 +80,25 @@ def update():
         x_location = str(request.json.get("x_location", "0"))
         y_location = str(request.json.get("y_location", "0"))
     except KeyError as e:
-        return jsonify({errors.REQUEST_ERROR : {str(e)}}), 400
+        return responses.request_error_response(e)
     try:
         task_service.update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location)
-        return "Success", 200
+        return responses.success_response("update_task")
     except ValidationException as e:
-        return jsonify({errors.VALIDATION_ERROR: str(e)}), 400
+        return responses.validation_error_response(e)
     except Exception as e:
-        return jsonify({errors.UNKNOWN_ERROR : str(e)}), 500
+        return responses.unknown_error_response(e)
 
 @bp.route('/delete', methods=['DELETE'])
 def delete():
     try:
         task_id = str(request.json["id"])
     except KeyError as e:
-        return jsonify({errors.REQUEST_ERROR : f"{str(e)}"}), 400
+        return responses.request_error_response(e)
     try:
         task_service.delete(task_id)
         return "Success", 200
     except ValidationException as e:
-        return jsonify({errors.VALIDATION_ERROR: str(e)}), 400
+        return responses.validation_error_response(e)
     except Exception as e:
-        return jsonify({errors.UNKNOWN_ERROR : str(e)}), 500
+        return responses.unknown_error_response(e)

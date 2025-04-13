@@ -1,4 +1,4 @@
-import be_exceptions.validation_exceptions as validation_exceptions
+import be_utilities.validation_exceptions as validation_exceptions
 import workspace.dao as ws_dao
 
 import user.service as user_service

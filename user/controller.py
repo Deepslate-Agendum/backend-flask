@@ -3,7 +3,7 @@ import json
 from flask import Blueprint, jsonify, request
 
 import user.service as user_service
-import be_utilities.error_messages as errors
+import be_utilities.response_model as responses
 
 from be_utilities.validation_exceptions import ValidationException
 
@@ -20,11 +20,11 @@ def get(user_id: str = None):
             users_json = [json.loads(user.to_json()) for user in get_user_result]
         else:
             users_json = json.loads(get_user_result.to_json())
-        return jsonify({"users": users_json}), 200
+        return responses.success_response("get_users", users_json)
     except ValidationException as e:
-        return jsonify({errors.VALIDATION_ERROR: str(e)}), 400
+        return responses.validation_error_response(e)
     except Exception as e:
-        return jsonify({errors.UNKNOWN_ERROR : str(e)}), 500
+        return responses.unknown_error_response(e)
 
 
 @bp.route('/create', methods=['POST'])
@@ -33,13 +33,13 @@ def create():
         username = str(request.json['username'])
         password = str(request.json['password'])
     except KeyError as e:
-        return jsonify({errors.REQUEST_ERROR : {str(e)}}), 400
+        return responses.request_error_response(e)
     try:
-        return jsonify({"user.id": user_service.create(username, password)}), 200
+        return responses.success_response("create_user", {"user.id": user_service.create(username, password)})
     except ValidationException as e:
-        return jsonify({errors.VALIDATION_ERROR: str(e)}), 400
+        return responses.validation_error_response(e)
     except Exception as e:
-        return jsonify({errors.UNKNOWN_ERROR : str(e)}), 500
+        return responses.unknown_error_response(e)
 
 @bp.route('/update', methods=['PATCH'])
 def update():
@@ -48,29 +48,28 @@ def update():
         username = str(request.json['username'])
         password = str(request.json['password'])
     except KeyError as e:
-        return jsonify({errors.REQUEST_ERROR : {str(e)}}), 400
-
+        return responses.request_error_response(e)
     try:
         user_service.update(user_id, username, password)
-        return "Success", 200
+        return responses.success_response("update_user")
     except ValidationException as e:
-        return jsonify({errors.VALIDATION_ERROR: str(e)}), 400
+        return responses.validation_error_response(e)
     except Exception as e:
-        return jsonify({errors.UNKNOWN_ERROR: str(e)}), 500
+        return responses.unknown_error_response(e)
 
 @bp.route('/delete', methods=['DELETE'])
 def delete():
     try:
         user_id = str(request.json['id'])
     except KeyError as e:
-        return jsonify({errors.REQUEST_ERROR : {str(e)}}), 400
+        return responses.request_error_response(e)
     try:
         user_service.delete(user_id)
-        return "Success", 200
+        return responses.success_response("delete_user")
     except ValidationException as e:
-        return jsonify({errors.VALIDATION_ERROR: str(e)}), 400
+        return responses.validation_error_response(e)
     except Exception as e:
-        return jsonify({errors.UNKNOWN_ERROR : str(e)}), 500
+        return responses.unknown_error_response(e)
 
 @bp.route('/login', methods=['POST'])
 def login():
@@ -78,17 +77,15 @@ def login():
         username = str(request.json['username'])
         password = str(request.json['password'])
     except KeyError as e:
-        return jsonify({errors.REQUEST_ERROR: {str(e)}}), 400
+        return responses.request_error_response(e)
     try:
         user, token = user_service.login(username, password)
-        return jsonify({
-            "user": json.loads(user.to_json()),  # HACK: same as above, also TODO: if user is null, again depending on AGENDUM-62
-            "token": token,
-        }), 200
+        return responses.success_response("login_user",
+        {"user": json.loads(user.to_json()), "token": token})
     except ValidationException as e:
-        return jsonify({errors.VALIDATION_ERROR: str(e)}), 400
+        return responses.validation_error_response(e)
     except Exception as e:
-        return jsonify({errors.UNKNOWN_ERROR : str(e)}), 500
+        return responses.unknown_error_response(e)
 
 @bp.route('/logout', methods=['POST'])
 def logout():

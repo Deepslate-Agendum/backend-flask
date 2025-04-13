@@ -3,7 +3,7 @@ from typing import Optional
 import datetime
 import task.dao as task_dao
 import workspace.service as ws_service
-import be_exceptions.validation_exceptions as validation_exceptions
+import be_utilities.validation_exceptions as validation_exceptions
 
 from db_python_util.db_exceptions.entity_not_found_exception import EntityNotFoundException
 
