@@ -4,8 +4,8 @@ from flask import (
     jsonify
 )
 
+from dao_shared import serialize_id
 import dependency.service as service
-from db_python_util.serialization_helper import get_fields
 from db_python_util.db_exceptions import DBException
 
 blueprint = Blueprint(
@@ -13,6 +13,14 @@ blueprint = Blueprint(
     import_name=__name__,
     url_prefix='/dependency',
 )
+
+def responsify_dependency(dependency):
+    return {
+        'id': serialize_id(dependency.id),
+        'dependee': serialize_id(dependency.depended_on_task.id),
+        'dependent': serialize_id(dependency.dependent_task.id),
+        'manner': dependency.manner.value
+    }
 
 @blueprint.post('/')
 def create_dependency(workspace_id: str):
@@ -30,7 +38,7 @@ def create_dependency(workspace_id: str):
 
     return jsonify({
         'status': 'success',
-        'result': get_fields(dependency),
+        'result': responsify_dependency(dependency),
     }), 200
 
 @blueprint.get('/')
@@ -50,7 +58,7 @@ def get_dependencies(workspace_id: str):
 
     return jsonify({
         'status': 'success',
-        'result': [get_fields(dependency) for dependency in dependencies],
+        'result': [responsify_dependency(dependency) for dependency in dependencies],
     }), 200
 
 @blueprint.get('/<dependency_id>')
@@ -65,7 +73,7 @@ def get_dependency(workspace_id: str, dependency_id: str):
 
     return jsonify({
         'status': 'success',
-        'result': get_fields(dependency),
+        'result': responsify_dependency(dependency),
     })
 
 @blueprint.delete('/<dependency_id>')
