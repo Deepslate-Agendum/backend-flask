@@ -22,9 +22,9 @@ def get(user_id: str = None):
             users_json = json.loads(get_user_result.to_json())
         return responses.success_response("get_users", users_json)
     except ValidationException as e:
-        return responses.validation_error_response(e)
+        return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
-        return responses.unknown_error_response(e)
+        return responses.unknown_error_response(message=str(e), type=type(e).__name__)
 
 
 @bp.route('/create', methods=['POST'])
@@ -33,13 +33,13 @@ def create():
         username = str(request.json['username'])
         password = str(request.json['password'])
     except KeyError as e:
-        return responses.request_error_response(e)
+        return responses.request_error_response(str(e), type=type(e).__name__)
     try:
         return responses.success_response("create_user", {"user.id": user_service.create(username, password)})
     except ValidationException as e:
-        return responses.validation_error_response(e)
+        return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
-        return responses.unknown_error_response(e)
+        return responses.unknown_error_response(message=str(e), type=type(e).__name__)
 
 @bp.route('/update', methods=['PATCH'])
 def update():
@@ -48,28 +48,28 @@ def update():
         username = str(request.json['username'])
         password = str(request.json['password'])
     except KeyError as e:
-        return responses.request_error_response(e)
+        return responses.request_error_response(str(e), type=type(e).__name__)
     try:
         user_service.update(user_id, username, password)
         return responses.success_response("update_user")
     except ValidationException as e:
-        return responses.validation_error_response(e)
+        return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
-        return responses.unknown_error_response(e)
+        return responses.unknown_error_response(message=str(e), type=type(e).__name__)
 
 @bp.route('/delete', methods=['DELETE'])
 def delete():
     try:
         user_id = str(request.json['id'])
     except KeyError as e:
-        return responses.request_error_response(e)
+        return responses.request_error_response(str(e), type=type(e).__name__)
     try:
         user_service.delete(user_id)
         return responses.success_response("delete_user")
     except ValidationException as e:
-        return responses.validation_error_response(e)
+        return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
-        return responses.unknown_error_response(e)
+        return responses.unknown_error_response(message=str(e), type=type(e).__name__)
 
 @bp.route('/login', methods=['POST'])
 def login():
@@ -77,15 +77,15 @@ def login():
         username = str(request.json['username'])
         password = str(request.json['password'])
     except KeyError as e:
-        return responses.request_error_response(e)
+        return responses.request_error_response(str(e), type=type(e).__name__)
     try:
         user, token = user_service.login(username, password)
         return responses.success_response("login_user",
         {"user": json.loads(user.to_json()), "token": token})
     except ValidationException as e:
-        return responses.validation_error_response(e)
+        return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
-        return responses.unknown_error_response(e)
+        return responses.unknown_error_response(message=str(e), type=type(e).__name__)
 
 @bp.route('/logout', methods=['POST'])
 def logout():

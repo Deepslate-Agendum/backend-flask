@@ -22,35 +22,36 @@ def create_dependency(workspace_id: str):
         dependent_id = str(request.json['dependent_id'])
         manner = str(request.json['manner'])
     except KeyError as e:
-        return responses.request_error_response(e)
+        return responses.request_error_response(str(e), type=type(e).__name__)
     try:
         dependency = service.create(dependee_id, dependent_id, manner)
-        return responses.success_response("create_dependency", get_fields(dependency))
+        return responses.success_response("create_dependency", get_fields(dependency), "dependency")
     except ValidationException as e:
-        return responses.validation_error_response(e)
+        return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
-        return responses.unknown_error_response(e)
+        return responses.unknown_error_response(message=str(e), type=type(e).__name__)
+
 
 @blueprint.get('/')
 def get_all_dependencies(workspace_id: str):
     try:
         dependencies = service.get_all(workspace_id)
         return responses.success_response("get_all_dependencies",
-            [get_fields(dependency) for dependency in dependencies])
+            [get_fields(dependency) for dependency in dependencies], "dependency")
     except ValidationException as e:
-        return responses.validation_error_response(e)
+        return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
-        return responses.unknown_error_response(e)
+        return responses.unknown_error_response(message=str(e), type=type(e).__name__)
 
 @blueprint.get('/<dependency_id>')
 def get_dependency(workspace_id: str, dependency_id: str):
     try:
         dependency = service.get_by_id(dependency_id)
-        return responses.success_response("get_fields", get_fields(dependency))
+        return responses.success_response("get_fields", get_fields(dependency), "dependency")
     except ValidationException as e:
-        return responses.validation_error_response(e)
+        return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
-        return responses.unknown_error_response(e)
+        return responses.unknown_error_response(message=str(e), type=type(e).__name__)
 
 @blueprint.delete('/<dependency_id>')
 def delete_dependency(workspace_id: str, dependency_id: str):
@@ -58,7 +59,7 @@ def delete_dependency(workspace_id: str, dependency_id: str):
         service.delete(dependency_id)
         return responses.success_response("delete_dependency")
     except ValidationException as e:
-        return responses.validation_error_response(e)
+        return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
-        return responses.unknown_error_response(e)
+        return responses.unknown_error_response(message=str(e), type=type(e).__name__)
 

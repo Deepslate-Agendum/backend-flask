@@ -16,13 +16,13 @@ def create():
         name = str(request.json['name'])
         owner = str(request.json['owner'])
     except KeyError as e:
-        return responses.request_error_response(e)
+        return responses.request_error_response(str(e), type=type(e).__name__)
     try:
         return responses.success_response("create_workspace", {"workspace_id" : ws_service.create(name, owner)})
     except ValidationException as e:
-        return responses.validation_error_response(e)
+        return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
-        return responses.unknown_error_response(e)
+        return responses.unknown_error_response(message=str(e), type=type(e).__name__)
 
 @workspaces_bp.route('/', methods=['GET'])
 @workspace_bp.route('/', methods=['GET'])
@@ -36,9 +36,9 @@ def get(workspace_id: str = None):
             workspaces_json = json.loads(workspaces.to_json())
         return responses.success_response("get_workspaces", workspaces_json)
     except ValidationException as e:
-        return responses.validation_error_response(e)
+        return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
-        return responses.unknown_error_response(e)
+        return responses.unknown_error_response(message=str(e), type=type(e).__name__)
 
 @workspaces_bp.route('/update', methods=['PATCH'])
 def update():
@@ -47,26 +47,26 @@ def update():
         name = str(request.json['name'])
         owner = str(request.json['owner'])
     except KeyError as e:
-        return responses.request_error_response(e)
+        return responses.request_error_response(str(e), type=type(e).__name__)
     try:
         ws_service.update(workspace_id, name, owner)
         return responses.success_response("update_workspace")
     except ValidationException as e:
-        return responses.validation_error_response(e)
+        return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
-        return responses.unknown_error_response(e)
+        return responses.unknown_error_response(message=str(e), type=type(e).__name__)
 
 @workspaces_bp.route('/delete', methods=['DELETE'])
 def delete():
     try:
         workspace_id = str(request.json['id'])
     except KeyError as e:
-        return responses.request_error_response(e)
+        return responses.request_error_response(str(e), type=type(e).__name__)
     try:
         ws_service.delete(workspace_id)
         return responses.success_response("delete_workspace")
     except ValidationException as e:
-        return responses.validation_error_response(e)
+        return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
-        return responses.unknown_error_response(e)
+        return responses.unknown_error_response(message=str(e), type=type(e).__name__)
 
