@@ -22,9 +22,9 @@ def serialize_task(task):
         if field_value.field.name == "Due Date":
             fields.update({"due_date": field_value.value})
         if field_value.field.name == "X Location":
-            fields.update({"x_location": field_value.value})
+            fields.update({"x_location": float(field_value.value)})
         if field_value.field.name == "Y Location":
-            fields.update({"y_location": field_value.value})
+            fields.update({"y_location": float(field_value.value)})
     fields.update({"tags": tags})
 
     return fields
@@ -36,8 +36,8 @@ def create():
     tags = request.json["tags"]
     workspace_id = request.json["workspace_id"]
     due_date = request.json["due_date"]
-    x_location = request.json.get("x_location", "0")
-    y_location = request.json.get("y_location", "0")
+    x_location = request.json.get("x_location", 0.0)
+    y_location = request.json.get("y_location", 0.0)
 
     task = task_service.create(workspace_id, name, description, tags, due_date, x_location, y_location)
     if task is not None:
