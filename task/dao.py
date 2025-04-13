@@ -70,11 +70,11 @@ def create(workspace_id: str, name: str, description: str, tags: list = None, du
     due_date_field_value.save()
     ns_field_values.append(due_date_field_value)
 
-    x_location_field_value = FieldValue(value = x_location, field = x_location_field, allowed_value = None)
+    x_location_field_value = FieldValue(value = str(x_location), field = x_location_field, allowed_value = None)
     x_location_field_value.save()
     ns_field_values.append(x_location_field_value)
 
-    y_location_field_value = FieldValue(value = y_location, field = y_location_field, allowed_value = None)
+    y_location_field_value = FieldValue(value = str(y_location), field = y_location_field, allowed_value = None)
     y_location_field_value.save()
     ns_field_values.append(y_location_field_value)
 

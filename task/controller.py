@@ -8,7 +8,10 @@ bp = Blueprint('task', __name__, url_prefix='/task')
 
 # HACK: serialize task
 def serialize_task(task):
-    fields = {"id": task.id.binary.hex()}
+    fields = {
+        "id": task.id.binary.hex(),
+        "dependencies": [dependency.pk.binary.hex() for dependency in task.dependencies],
+    }
     tags = []
     for field_value in task.nonstatic_field_values:
         if field_value.field.name == "Name":
@@ -77,8 +80,8 @@ def update():
         tags = request.json["tags"]
         workspace_id = str(request.json["workspace_id"])
         due_date = request.json["due_date"]
-        x_location = str(request.json.get("x_location", "0"))
-        y_location = str(request.json.get("y_location", "0"))
+        x_location = (request.json.get("x_location", 0.0))
+        y_location = (request.json.get("y_location", 0.0))
     except KeyError as e:
         return responses.request_error_response(str(e), type=type(e).__name__)
     try:

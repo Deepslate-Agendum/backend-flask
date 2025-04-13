@@ -4,8 +4,8 @@ from flask import (
     jsonify
 )
 import be_utilities.response_model as responses
+from dao_shared import serialize_id
 import dependency.service as service
-from db_python_util.serialization_helper import get_fields
 from db_python_util.db_exceptions import DBException
 from be_utilities.validation_exceptions import ValidationException
 
@@ -14,6 +14,14 @@ blueprint = Blueprint(
     import_name=__name__,
     url_prefix='/dependency',
 )
+
+def responsify_dependency(dependency):
+    return {
+        'id': serialize_id(dependency.id),
+        'dependee': serialize_id(dependency.depended_on_task.id),
+        'dependent': serialize_id(dependency.dependent_task.id),
+        'manner': dependency.manner.value
+    }
 
 @blueprint.post('/')
 def create_dependency(workspace_id: str):
@@ -25,7 +33,7 @@ def create_dependency(workspace_id: str):
         return responses.request_error_response(str(e), type=type(e).__name__)
     try:
         dependency = service.create(dependee_id, dependent_id, manner)
-        return responses.success_response("create_dependency", get_fields(dependency), "dependency")
+        return responses.success_response("create_dependency",responsify_dependency(dependency))
     except ValidationException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
@@ -33,21 +41,16 @@ def create_dependency(workspace_id: str):
 
 
 @blueprint.get('/')
-def get_all_dependencies(workspace_id: str):
+def get_dependencies(workspace_id: str):
     try:
-        dependencies = service.get_all(workspace_id)
+        ids = request.args.get('ids')
+        if ids is None:
+            dependencies = service.get_all(workspace_id)
+        else:
+            ids = ids.split(',')
+            dependencies = service.get_multiple_by_id(ids)
         return responses.success_response("get_all_dependencies",
-            [get_fields(dependency) for dependency in dependencies], "dependency")
-    except ValidationException as e:
-        return responses.validation_error_response(message=str(e), type=type(e).__name__)
-    except Exception as e:
-        return responses.unknown_error_response(message=str(e), type=type(e).__name__)
-
-@blueprint.get('/<dependency_id>')
-def get_dependency(workspace_id: str, dependency_id: str):
-    try:
-        dependency = service.get_by_id(dependency_id)
-        return responses.success_response("get_fields", get_fields(dependency), "dependency")
+            dependencies)
     except ValidationException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:

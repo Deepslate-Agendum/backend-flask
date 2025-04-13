@@ -1,5 +1,5 @@
 from typing import List
-from dao_shared import get_document_by_id
+from dao_shared import get_document_by_id, get_documents_by_ids
 from db_python_util.db_classes import Dependency, ValueType, AllowedValue, Task
 from db_python_util.db_exceptions import DBException, EntityNotFoundException
 from db_python_util.db_helper import ConnectionManager
@@ -48,6 +48,10 @@ def create(dependee_id: str, dependent_id: str, manner_name: str) -> Dependency:
         manner=manner,
     )
     dependency.save()
+
+    depended_on_task_object.update(push__dependencies=dependency)
+    dependent_task_object.update(push__dependencies=dependency)
+
     return dependency
 
 @ConnectionManager.requires_connection
@@ -69,6 +73,10 @@ def get_by_id(id: str) -> Dependency:
         return get_document_by_id(Dependency, id)
     except DBException as e:
         raise EntityNotFoundException
+
+@ConnectionManager.requires_connection
+def get_multiple_by_id(dependency_ids: List[str]) -> Dependency:
+    return get_documents_by_ids(Dependency, dependency_ids)
 
 def delete(dependency_id: str) -> None:
     dependency = get_by_id(dependency_id)
