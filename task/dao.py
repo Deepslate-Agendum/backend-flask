@@ -117,7 +117,7 @@ def get_all(workspace_id: Optional[str]):
     return list(tasks)
 
 @ConnectionManager.requires_connection
-def update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location):
+def update(task_id, workspace_id, name, description, tags, due_date, x_location: float, y_location: float):
     """
     Update the task by id
     Currently only supports default task updateality
@@ -146,9 +146,9 @@ def update(task_id, workspace_id, name, description, tags, due_date, x_location,
             if due_date is not None:
                 field_value_objects.update_one(set__value = due_date)
         if field_value_object.field.name == "X Location":
-            field_value_objects.update_one(set__value = x_location)
+            field_value_objects.update_one(set__value = str(x_location))
         if field_value_object.field.name == "Y Location":
-            field_value_objects.update_one(set__value = y_location)
+            field_value_objects.update_one(set__value = str(y_location))
 
     # get the tag Value Type
     tag_value_type = ValueType.objects(name="Tag").first()
