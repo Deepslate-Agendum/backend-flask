@@ -35,7 +35,7 @@ def create():
     try:
         username = body(request, "username")
         password = body(request, "password")
-        return responses.success_response("create_user", user_service.create(username, password), object_name="user_id")
+        return responses.success_response("create_user", [user_service.create(username, password)], ["user_id"])
     except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
@@ -75,7 +75,7 @@ def login():
     try:
         user, token = user_service.login(username, password)
         return responses.success_response("login_user",
-        {"user": json.loads(user.to_json()), "token": token}, object_name="user")
+        [json.loads(user.to_json()), token], object_name=["user", "token"])
     except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:

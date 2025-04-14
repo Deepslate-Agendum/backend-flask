@@ -7,15 +7,23 @@ def known_error_response(message: str, type: str):
 def unknown_error_response():
     return response(status="error", status_message="An unknown error occurred.",
                     status_type="unknown", http_response_code=500)
-def success_response(message: str, object = None, object_name: str = None):
-    return response(status="success", status_message=message, status_type="object", http_response_code=200, object=object, object_name=object_name)
+def success_response(message: str, object: object | list, object_name: str | list= None):
+    if not isinstance(object, list) and isinstance(object_name, str):
+        return response(status="success", http_response_code=200, objects=[object], object_names=[object_name])
+    elif isinstance(object, list) and isinstance(object_name, str):
+        return response(status="success", http_response_code=200, objects=[object], object_names=[object_name])
+    elif isinstance(object, list) and isinstance(object_name, list):
+        if len(object) != len(object_name):
+            raise ValueError("Length mismatch: when providing multiple keys and objects, their lengths must match.")
+        return response(status="success", http_response_code=200, objects=object, object_names=object_name)
 
-def response(status: str, status_message: str, status_type: str, http_response_code: int, object = None, object_name: str = None):
-    if status != "error" and object != None:
-        return jsonify({
-        "status": status,
-        object_name : object
-    }), http_response_code
+def response(status: str, http_response_code: int, objects: list = None, object_names: list = None, status_message: str = None, status_type: str = None):
+    if status != "error":
+        response_dict = {"status" : status}
+        if objects is not None and object_names is not None:
+            for key, value in zip(object_names, objects):
+                response_dict[key] = value
+        return jsonify(response_dict), http_response_code
     else:
         return jsonify({
             "status": status,
