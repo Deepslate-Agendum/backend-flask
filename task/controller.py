@@ -45,7 +45,7 @@ def create():
         return responses.success_response("create_task",
             serialize_task(task_service.create(workspace_id, name, description, tags, due_date, x_location, y_location)), object_name="task")
     except ServiceException as e:
-        return responses.validation_error_response(str(e), e.__qualname__)
+        return responses.known_error_response(str(e), e.__qualname__)
     except Exception as e:
         return responses.unknown_error_response(str(e), e.__qualname__)
 
@@ -67,9 +67,9 @@ def get_tasks(task_id: int = None):
             tasks_json = serialize_task(tasks)
         return responses.success_response("get_tasks", tasks_json, object_name="tasks")
     except ServiceException as e:
-        return responses.validation_error_response(message=str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
-        return responses.unknown_error_response(message=str(e), type=type(e).__name__)
+        return responses.unknown_error_response()
 
 @bp.route('/update', methods=['PUT'])
 def update():
@@ -83,25 +83,25 @@ def update():
         x_location = (request.json.get("x_location", 0.0))
         y_location = (request.json.get("y_location", 0.0))
     except KeyError as e:
-        return responses.request_error_response(str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), type=type(e).__name__)
     try:
         task_service.update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location)
         return responses.success_response("update_task")
     except ServiceException as e:
-        return responses.validation_error_response(message=str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
-        return responses.unknown_error_response(message=str(e), type=type(e).__name__)
+        return responses.unknown_error_response()
 
 @bp.route('/delete', methods=['DELETE'])
 def delete():
     try:
         task_id = str(request.json["id"])
     except KeyError as e:
-        return responses.request_error_response(str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), type=type(e).__name__)
     try:
         task_service.delete(task_id)
         return responses.success_response(message="delete_task")
     except ServiceException as e:
-        return responses.validation_error_response(message=str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response(e)

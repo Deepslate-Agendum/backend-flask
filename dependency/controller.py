@@ -30,14 +30,14 @@ def create_dependency(workspace_id: str):
         dependent_id = str(request.json['dependent_id'])
         manner = str(request.json['manner'])
     except KeyError as e:
-        return responses.request_error_response(str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), type=type(e).__name__)
     try:
         dependency = service.create(dependee_id, dependent_id, manner)
         return responses.success_response("create_dependency",responsify_dependency(dependency))
-    except ServiceException as e:
-        return responses.validation_error_response(message=str(e), type=type(e).__name__)
+    except (ServiceException, DBException) as e:
+        return responses.known_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
-        return responses.unknown_error_response(message=str(e), type=type(e).__name__)
+        return responses.unknown_error_response()
 
 
 @blueprint.get('/')
@@ -52,18 +52,18 @@ def get_dependencies(workspace_id: str):
 
         return responses.success_response("get_dependencies",
             [responsify_dependency(dependency) for dependency in dependencies], object_name="dependency")
-    except ServiceException as e:
-        return responses.validation_error_response(message=str(e), type=type(e).__name__)
+    except (ServiceException, DBException) as e:
+        return responses.known_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
-        return responses.unknown_error_response(message=str(e), type=type(e).__name__)
+        return responses.unknown_error_response()
 
 @blueprint.delete('/<dependency_id>')
 def delete_dependency(workspace_id: str, dependency_id: str):
     try:
         service.delete(dependency_id)
         return responses.success_response("delete_dependency")
-    except ServiceException as e:
-        return responses.validation_error_response(message=str(e), type=type(e).__name__)
+    except (ServiceException, DBException) as e:
+        return responses.known_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
-        return responses.unknown_error_response(message=str(e), type=type(e).__name__)
+        return responses.unknown_error_response()
 
