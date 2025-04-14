@@ -2,7 +2,10 @@ import json
 
 from flask import Blueprint, jsonify, request
 import workspace.service as ws_service
-from be_utilities.service_exceptions import ServiceException
+from be_utilities.util_funcs import KNOWN_EXCEPTIONS
+from be_utilities.util_funcs import get_param_from_body as body
+from be_utilities.util_funcs import get_param_from_url as url
+
 import be_utilities.response_model as responses
 
 
@@ -13,13 +16,10 @@ workspaces_bp.register_blueprint(workspace_bp)
 @workspaces_bp.route('/create', methods=['POST'])
 def create():
     try:
-        name = (request.json['name'])
-        owner = (request.json['owner'])
-    except KeyError as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
-    try:
+        name = body(request, "name")
+        owner = body(request, "owner")
         return responses.success_response("create_workspace", {"workspace_id" : ws_service.create(name, owner)})
-    except ServiceException as e:
+    except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
@@ -35,7 +35,7 @@ def get(workspace_id: str = None):
         else:
             workspaces_json = json.loads(workspaces.to_json())
         return responses.success_response("get_workspaces", workspaces_json)
-    except ServiceException as e:
+    except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
@@ -43,15 +43,12 @@ def get(workspace_id: str = None):
 @workspaces_bp.route('/update', methods=['PATCH'])
 def update():
     try:
-        workspace_id = (request.json['id'])
-        name = (request.json['name'])
-        owner = (request.json['owner'])
-    except KeyError as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
-    try:
+        workspace_id = body(request, "id")
+        name = body(request, "name")
+        owner = body(request, "owner")
         ws_service.update(workspace_id, name, owner)
         return responses.success_response("update_workspace")
-    except ServiceException as e:
+    except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
@@ -59,13 +56,10 @@ def update():
 @workspaces_bp.route('/delete', methods=['DELETE'])
 def delete():
     try:
-        workspace_id = (request.json['id'])
-    except KeyError as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
-    try:
+        workspace_id = body(request, "id")
         ws_service.delete(workspace_id)
         return responses.success_response("delete_workspace")
-    except ServiceException as e:
+    except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()

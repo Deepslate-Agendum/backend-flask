@@ -6,8 +6,12 @@ from flask import (
 import be_utilities.response_model as responses
 from dao_shared import serialize_id
 import dependency.service as service
-from db_python_util.db_exceptions import DBException
-from be_utilities.service_exceptions import ServiceException
+
+
+from be_utilities.util_funcs import KNOWN_EXCEPTIONS
+
+from be_utilities.util_funcs import get_param_from_body as body
+from be_utilities.util_funcs import get_param_from_url as url
 
 blueprint = Blueprint(
     name='dependency',
@@ -22,19 +26,15 @@ def responsify_dependency(dependency):
         'dependent': serialize_id(dependency.dependent_task.id),
         'manner': dependency.manner.value
     }
-
 @blueprint.post('/')
 def create_dependency(workspace_id: str):
     try:
-        dependee_id = (request.json['dependee_id'])
-        dependent_id = (request.json['dependent_id'])
-        manner = (request.json['manner'])
-    except KeyError as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
-    try:
+        dependee_id = body(request, "dependee_id")
+        dependent_id = body(request, "dependent_id")
+        manner = body(request, "manner")
         dependency = service.create(dependee_id, dependent_id, manner)
         return responses.success_response("create_dependency",responsify_dependency(dependency))
-    except (ServiceException, DBException) as e:
+    except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
@@ -43,7 +43,7 @@ def create_dependency(workspace_id: str):
 @blueprint.get('/')
 def get_dependencies(workspace_id: str):
     try:
-        ids = request.args.get('ids')
+        ids = url(request, 'ids')
         if ids is None:
             dependencies = service.get_all(workspace_id)
         else:
@@ -52,7 +52,7 @@ def get_dependencies(workspace_id: str):
 
         return responses.success_response("get_dependencies",
             [responsify_dependency(dependency) for dependency in dependencies], object_name="dependency")
-    except (ServiceException, DBException) as e:
+    except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
@@ -62,7 +62,7 @@ def delete_dependency(workspace_id: str, dependency_id: str):
     try:
         service.delete(dependency_id)
         return responses.success_response("delete_dependency")
-    except (ServiceException, DBException) as e:
+    except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()

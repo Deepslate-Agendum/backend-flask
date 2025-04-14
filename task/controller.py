@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, request
 import task.service as task_service
-from be_utilities.service_exceptions import ServiceException
+from be_utilities.util_funcs import get_param_from_body as body
+from be_utilities.util_funcs import get_param_from_url as url
+from be_utilities.util_funcs import KNOWN_EXCEPTIONS
 import be_utilities.response_model as responses
 
 
@@ -32,32 +34,26 @@ def serialize_task(task):
 @bp.route('/create', methods=['POST'])
 def create():
     try:
-        name = (request.json["name"])
-        description = (request.json["description"])
-        tags = request.json["tags"]
-        workspace_id = (request.json["workspace_id"])
-        due_date = request.json["due_date"]
-        x_location = (request.json.get("x_location", "0"))
-        y_location = (request.json.get("y_location", "0"))
-    except KeyError as e:
-        return responses.request_error_response(str(e))
-    try:
+        name = body(request, "name")
+        description = body(request, "description")
+        tags = body(request, "tags")
+        workspace_id = body(request, "workspace_id")
+        due_date = body(request, "due_date")
+        x_location = body(request, "x_location", 0.0)
+        y_location = body(request, "y_location", 0.0)
         return responses.success_response("create_task",
             serialize_task(task_service.create(workspace_id, name, description, tags, due_date, x_location, y_location)), object_name="task")
-    except ServiceException as e:
-        return responses.known_error_response(str(e), e.__qualname__)
+    except KNOWN_EXCEPTIONS as e:
+        return responses.known_error_response(str(e), type(e).__name__)
     except Exception as e:
-        return responses.unknown_error_response(str(e), e.__qualname__)
+        return responses.unknown_error_response()
 
 
 @bp.route('/', methods=['GET'])
 @bp.route('/<string:task_id>', methods=['GET'])
 def get_tasks(task_id: int = None):
     try:
-        workspace_id = (request.args['workspace_id'])
-    except KeyError as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
-    try:
+        workspace_id = url(request, "workspace_id")
         tasks = task_service.get(task_id, workspace_id)
 
         # HACK: same deal as in user
@@ -66,7 +62,7 @@ def get_tasks(task_id: int = None):
         else:
             tasks_json = serialize_task(tasks)
         return responses.success_response("get_tasks", tasks_json, object_name="tasks")
-    except ServiceException as e:
+    except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
@@ -74,20 +70,17 @@ def get_tasks(task_id: int = None):
 @bp.route('/update', methods=['PUT'])
 def update():
     try:
-        task_id = (request.json["id"])
-        name = (request.json["name"])
-        description = (request.json["description"])
-        tags = request.json["tags"]
-        workspace_id = (request.json["workspace_id"])
-        due_date = request.json["due_date"]
-        x_location = (request.json.get("x_location", 0.0))
-        y_location = (request.json.get("y_location", 0.0))
-    except KeyError as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
-    try:
+        task_id = body(request, "id")
+        name = body(request, "name")
+        description = body(request, "description")
+        tags = body(request, "tags")
+        workspace_id = body(request, "workspace_id")
+        due_date = body(request, "due_date")
+        x_location = body(request, "x_location", 0.0)
+        y_location = body(request, "y_location", 0.0)
         task_service.update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location)
         return responses.success_response("update_task")
-    except ServiceException as e:
+    except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
@@ -95,13 +88,10 @@ def update():
 @bp.route('/delete', methods=['DELETE'])
 def delete():
     try:
-        task_id = (request.json["id"])
-    except KeyError as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
-    try:
+        task_id = body(request, "id")
         task_service.delete(task_id)
         return responses.success_response(message="delete_task")
-    except ServiceException as e:
+    except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response(e)
