@@ -94,7 +94,7 @@ def create(workspace_id: str, name: str, description: str, tags: list = None, du
 def get_by_id(id):
     """
     Get the task by id
-    If the task does not exist: -> return None
+    If the task does not exist: -> raise EntityNotFoundException
     Else return the task object
     """
     try:
