@@ -56,7 +56,7 @@ def get_tasks(task_id: int = None):
     try:
         workspace_id = (request.args['workspace_id'])
     except KeyError as e:
-        workspace_id = None
+        return responses.known_error_response(message=str(e), type=type(e).__name__)
     try:
         tasks = task_service.get(task_id, workspace_id)
 
