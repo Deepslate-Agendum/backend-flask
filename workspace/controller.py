@@ -2,7 +2,7 @@ import json
 
 from flask import Blueprint, jsonify, request
 import workspace.service as ws_service
-from be_utilities.validation_exceptions import ValidationException
+from be_utilities.service_exceptions import ServiceException
 import be_utilities.response_model as responses
 
 
@@ -19,7 +19,7 @@ def create():
         return responses.request_error_response(str(e), type=type(e).__name__)
     try:
         return responses.success_response("create_workspace", {"workspace_id" : ws_service.create(name, owner)})
-    except ValidationException as e:
+    except ServiceException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response(message=str(e), type=type(e).__name__)
@@ -35,7 +35,7 @@ def get(workspace_id: str = None):
         else:
             workspaces_json = json.loads(workspaces.to_json())
         return responses.success_response("get_workspaces", workspaces_json)
-    except ValidationException as e:
+    except ServiceException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response(message=str(e), type=type(e).__name__)
@@ -51,7 +51,7 @@ def update():
     try:
         ws_service.update(workspace_id, name, owner)
         return responses.success_response("update_workspace")
-    except ValidationException as e:
+    except ServiceException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response(message=str(e), type=type(e).__name__)
@@ -65,7 +65,7 @@ def delete():
     try:
         ws_service.delete(workspace_id)
         return responses.success_response("delete_workspace")
-    except ValidationException as e:
+    except ServiceException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response(message=str(e), type=type(e).__name__)

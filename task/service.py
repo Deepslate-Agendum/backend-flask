@@ -3,7 +3,7 @@ from typing import Optional
 import datetime
 import task.dao as task_dao
 import workspace.service as ws_service
-import be_utilities.validation_exceptions as validation_exceptions
+import be_utilities.service_exceptions as service_exceptions
 
 from db_python_util.db_exceptions.entity_not_found_exception import EntityNotFoundException
 
@@ -12,7 +12,7 @@ from db_python_util.db_exceptions.entity_not_found_exception import EntityNotFou
 def create(workspace_id: str, name: str, description: str, tags: list = None, due_date: datetime = None, x_location = 0.0, y_location = 0.0):
     ws_service.get(workspace_id)
     if len(name) == 0:
-        raise validation_exceptions.InvalidParameterException("The request task does not have a name.")
+        raise service_exceptions.InvalidParameterException("The request task does not have a name.")
     """Create a task."""
     if tags is None: tags = []
     return task_dao.create(workspace_id, name, description, tags, due_date, x_location, y_location)
@@ -21,7 +21,7 @@ def update(task_id: int, workspace_id: int, name: str = None, description: str =
     try:
         ws_service.get(workspace_id)
         get(task_id, workspace_id)
-    except validation_exceptions.ValidationException as e:
+    except service_exceptions.ServiceException as e:
         raise e
     """Update a task."""
     if tags is None: tags = []
@@ -41,4 +41,4 @@ def get(task_id: Optional[str] = None, workspace_id: Optional[str] = None) -> li
         try:
             return task_dao.get_by_id(task_id)
         except EntityNotFoundException as e:
-            raise validation_exceptions.InvalidParameterException(f"The given task ID '{task_id}' is not a valid task.")
+            raise service_exceptions.InvalidParameterException(f"The given task ID '{task_id}' is not a valid task.")

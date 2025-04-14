@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 import task.service as task_service
-from be_utilities.validation_exceptions import ValidationException
+from be_utilities.service_exceptions import ServiceException
 import be_utilities.response_model as responses
 
 
@@ -44,7 +44,7 @@ def create():
     try:
         return responses.success_response("create_task",
             serialize_task(task_service.create(workspace_id, name, description, tags, due_date, x_location, y_location)), object_name="task")
-    except ValidationException as e:
+    except ServiceException as e:
         return responses.validation_error_response(str(e), e.__qualname__)
     except Exception as e:
         return responses.unknown_error_response(str(e), e.__qualname__)
@@ -66,7 +66,7 @@ def get_tasks(task_id: int = None):
         else:
             tasks_json = serialize_task(tasks)
         return responses.success_response("get_tasks", tasks_json, object_name="tasks")
-    except ValidationException as e:
+    except ServiceException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response(message=str(e), type=type(e).__name__)
@@ -87,7 +87,7 @@ def update():
     try:
         task_service.update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location)
         return responses.success_response("update_task")
-    except ValidationException as e:
+    except ServiceException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response(message=str(e), type=type(e).__name__)
@@ -101,7 +101,7 @@ def delete():
     try:
         task_service.delete(task_id)
         return responses.success_response(message="delete_task")
-    except ValidationException as e:
+    except ServiceException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response(e)

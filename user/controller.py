@@ -5,7 +5,7 @@ from flask import Blueprint, jsonify, request
 import user.service as user_service
 import be_utilities.response_model as responses
 
-from be_utilities.validation_exceptions import ValidationException
+from be_utilities.service_exceptions import ServiceException
 
 bp = Blueprint('user', __name__, url_prefix='/user')
 
@@ -21,7 +21,7 @@ def get(user_id: str = None):
         else:
             users_json = json.loads(get_user_result.to_json())
         return responses.success_response("get_users", users_json, "users")
-    except ValidationException as e:
+    except ServiceException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response(message=str(e), type=type(e).__name__)
@@ -36,7 +36,7 @@ def create():
         return responses.request_error_response(str(e), type=type(e).__name__)
     try:
         return responses.success_response("create_user", user_service.create(username, password), object_name="user_id")
-    except ValidationException as e:
+    except ServiceException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response(message=str(e), type=type(e).__name__)
@@ -52,7 +52,7 @@ def update():
     try:
         user_service.update(user_id, username, password)
         return responses.success_response("update_user")
-    except ValidationException as e:
+    except ServiceException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response(message=str(e), type=type(e).__name__)
@@ -66,7 +66,7 @@ def delete():
     try:
         user_service.delete(user_id)
         return responses.success_response("delete_user")
-    except ValidationException as e:
+    except ServiceException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response(message=str(e), type=type(e).__name__)
@@ -82,7 +82,7 @@ def login():
         user, token = user_service.login(username, password)
         return responses.success_response("login_user",
         {"user": json.loads(user.to_json()), "token": token}, object_name="user")
-    except ValidationException as e:
+    except ServiceException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response(message=str(e), type=type(e).__name__)

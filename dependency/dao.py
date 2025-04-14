@@ -1,7 +1,7 @@
 from typing import List
 from dao_shared import get_document_by_id, get_documents_by_ids
 from db_python_util.db_classes import Dependency, ValueType, AllowedValue, Task
-from db_python_util.db_exceptions import DBException, EntityNotFoundException
+from db_python_util.db_exceptions import DBException, EntityNotFoundException, AlreadyExistsException
 from db_python_util.db_helper import ConnectionManager
 
 import task.dao as task_dao
@@ -35,10 +35,10 @@ def create(dependee_id: str, dependent_id: str, manner_name: str) -> Dependency:
     )
 
     if duplicates.count() > 0:
-        raise DBException(f"Dependency already exists between Task(id={dependee_id}) and Task(id={dependent_id})")
+        raise AlreadyExistsException(f"Dependency already exists between Task(id={dependee_id}) and Task(id={dependent_id})")
 
     if check_depends_on(dependee_id, dependent_id):
-        raise DBException(f"Task(id={dependee_id}) depends on Task(id={dependent_id})")
+        raise AlreadyExistsException(f"Task(id={dependee_id}) depends on Task(id={dependent_id})")
 
     manner = get_manner(manner_name)
 
@@ -56,23 +56,17 @@ def create(dependee_id: str, dependent_id: str, manner_name: str) -> Dependency:
 
 @ConnectionManager.requires_connection
 def get_all(workspace_id: str) -> List[Dependency]:
-    try:
-        workspace = workspace_dao.get_by_id(workspace_id)
-        task_ids = [task.pk for task in workspace.tasks]
-        dependencies = Dependency.objects(
-            dependent_task__in=task_ids,
-            depended_on_task__in=task_ids,
-        )
-    except DBException as e:
-        raise EntityNotFoundException
+    workspace = workspace_dao.get_by_id(workspace_id)
+    task_ids = [task.pk for task in workspace.tasks]
+    dependencies = Dependency.objects(
+        dependent_task__in=task_ids,
+        depended_on_task__in=task_ids,
+    )
     return list(dependencies)
 
 @ConnectionManager.requires_connection
 def get_by_id(id: str) -> Dependency:
-    try:
-        return get_document_by_id(Dependency, id)
-    except DBException as e:
-        raise EntityNotFoundException
+    return get_document_by_id(Dependency, id)
 
 @ConnectionManager.requires_connection
 def get_multiple_by_id(dependency_ids: List[str]) -> Dependency:

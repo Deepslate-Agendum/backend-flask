@@ -7,7 +7,7 @@ import be_utilities.response_model as responses
 from dao_shared import serialize_id
 import dependency.service as service
 from db_python_util.db_exceptions import DBException
-from be_utilities.validation_exceptions import ValidationException
+from be_utilities.service_exceptions import ServiceException
 
 blueprint = Blueprint(
     name='dependency',
@@ -34,7 +34,7 @@ def create_dependency(workspace_id: str):
     try:
         dependency = service.create(dependee_id, dependent_id, manner)
         return responses.success_response("create_dependency",responsify_dependency(dependency))
-    except ValidationException as e:
+    except ServiceException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response(message=str(e), type=type(e).__name__)
@@ -52,7 +52,7 @@ def get_dependencies(workspace_id: str):
 
         return responses.success_response("get_dependencies",
             [responsify_dependency(dependency) for dependency in dependencies], object_name="dependency")
-    except ValidationException as e:
+    except ServiceException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response(message=str(e), type=type(e).__name__)
@@ -62,7 +62,7 @@ def delete_dependency(workspace_id: str, dependency_id: str):
     try:
         service.delete(dependency_id)
         return responses.success_response("delete_dependency")
-    except ValidationException as e:
+    except ServiceException as e:
         return responses.validation_error_response(message=str(e), type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response(message=str(e), type=type(e).__name__)
