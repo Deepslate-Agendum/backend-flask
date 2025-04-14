@@ -32,13 +32,13 @@ def serialize_task(task):
 @bp.route('/create', methods=['POST'])
 def create():
     try:
-        name = str(request.json["name"])
-        description = str(request.json["description"])
+        name = (request.json["name"])
+        description = (request.json["description"])
         tags = request.json["tags"]
-        workspace_id = str(request.json["workspace_id"])
+        workspace_id = (request.json["workspace_id"])
         due_date = request.json["due_date"]
-        x_location = str(request.json.get("x_location", "0"))
-        y_location = str(request.json.get("y_location", "0"))
+        x_location = (request.json.get("x_location", "0"))
+        y_location = (request.json.get("y_location", "0"))
     except KeyError as e:
         return responses.request_error_response(str(e))
     try:
@@ -54,7 +54,7 @@ def create():
 @bp.route('/<string:task_id>', methods=['GET'])
 def get_tasks(task_id: int = None):
     try:
-        workspace_id = str(request.args['workspace_id'])
+        workspace_id = (request.args['workspace_id'])
     except KeyError as e:
         workspace_id = None
     try:
@@ -74,11 +74,11 @@ def get_tasks(task_id: int = None):
 @bp.route('/update', methods=['PUT'])
 def update():
     try:
-        task_id = str(request.json["id"])
-        name = str(request.json["name"])
-        description = str(request.json["description"])
+        task_id = (request.json["id"])
+        name = (request.json["name"])
+        description = (request.json["description"])
         tags = request.json["tags"]
-        workspace_id = str(request.json["workspace_id"])
+        workspace_id = (request.json["workspace_id"])
         due_date = request.json["due_date"]
         x_location = (request.json.get("x_location", 0.0))
         y_location = (request.json.get("y_location", 0.0))
@@ -95,7 +95,7 @@ def update():
 @bp.route('/delete', methods=['DELETE'])
 def delete():
     try:
-        task_id = str(request.json["id"])
+        task_id = (request.json["id"])
     except KeyError as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     try:

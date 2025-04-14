@@ -13,8 +13,8 @@ workspaces_bp.register_blueprint(workspace_bp)
 @workspaces_bp.route('/create', methods=['POST'])
 def create():
     try:
-        name = str(request.json['name'])
-        owner = str(request.json['owner'])
+        name = (request.json['name'])
+        owner = (request.json['owner'])
     except KeyError as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     try:
@@ -43,9 +43,9 @@ def get(workspace_id: str = None):
 @workspaces_bp.route('/update', methods=['PATCH'])
 def update():
     try:
-        workspace_id = str(request.json['id'])
-        name = str(request.json['name'])
-        owner = str(request.json['owner'])
+        workspace_id = (request.json['id'])
+        name = (request.json['name'])
+        owner = (request.json['owner'])
     except KeyError as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     try:
@@ -59,7 +59,7 @@ def update():
 @workspaces_bp.route('/delete', methods=['DELETE'])
 def delete():
     try:
-        workspace_id = str(request.json['id'])
+        workspace_id = (request.json['id'])
     except KeyError as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     try:

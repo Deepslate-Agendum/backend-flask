@@ -26,9 +26,9 @@ def responsify_dependency(dependency):
 @blueprint.post('/')
 def create_dependency(workspace_id: str):
     try:
-        dependee_id = str(request.json['dependee_id'])
-        dependent_id = str(request.json['dependent_id'])
-        manner = str(request.json['manner'])
+        dependee_id = (request.json['dependee_id'])
+        dependent_id = (request.json['dependent_id'])
+        manner = (request.json['manner'])
     except KeyError as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     try:

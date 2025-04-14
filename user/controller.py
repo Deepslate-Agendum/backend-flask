@@ -30,8 +30,8 @@ def get(user_id: str = None):
 @bp.route('/create', methods=['POST'])
 def create():
     try:
-        username = str(request.json['username'])
-        password = str(request.json['password'])
+        username = (request.json['username'])
+        password = (request.json['password'])
     except KeyError as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     try:
@@ -44,9 +44,9 @@ def create():
 @bp.route('/update', methods=['PATCH'])
 def update():
     try:
-        user_id = str(request.json['id'])
-        username = str(request.json['username'])
-        password = str(request.json['password'])
+        user_id = (request.json['id'])
+        username = (request.json['username'])
+        password = (request.json['password'])
     except KeyError as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     try:
@@ -60,7 +60,7 @@ def update():
 @bp.route('/delete', methods=['DELETE'])
 def delete():
     try:
-        user_id = str(request.json['id'])
+        user_id = (request.json['id'])
     except KeyError as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     try:
@@ -74,8 +74,8 @@ def delete():
 @bp.route('/login', methods=['POST'])
 def login():
     try:
-        username = str(request.json['username'])
-        password = str(request.json['password'])
+        username = (request.json['username'])
+        password = (request.json['password'])
     except KeyError as e:
         return responses.known_error_response(message=str(e), type=type(e).__name__)
     try:
