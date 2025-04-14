@@ -97,10 +97,7 @@ def get_by_id(id):
     If the task does not exist: -> raise EntityNotFoundException
     Else return the task object
     """
-    try:
-        task = get_document_by_id(Task, id)
-    except ValidationError:
-        raise EntityNotFoundException(Task, f"No task with {id}")
+    task = get_document_by_id(Task, id)
     return task
 
 @ConnectionManager.requires_connection
