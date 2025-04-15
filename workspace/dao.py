@@ -5,6 +5,7 @@ from db_python_util.db_helper import ConnectionManager
 from db_python_util.db_exceptions import (
     EntityNotFoundException,
     UsernameTakenException,
+    AlreadyExistsException
 )
 
 from mongoengine.errors import (
@@ -26,12 +27,9 @@ def create(name, owner):
     default_task_type = TaskType.objects(name = "Default").first()
     try:
         workspace = Workspace(name = name, users = [user_owner], task_types = [default_task_type], tasks = [])
+        workspace.save()
     except NotUniqueError:
-        raise UsernameTakenException(Workspace, f"{name}") # should add a more appropriate exception
-    except Exception as e:
-        print(e)
-    workspace.save()
-
+        raise AlreadyExistsException(f"The workspace {name} already exists.") # should add a more appropriate exception
     return workspace.id.binary.hex()
 
 @ConnectionManager.requires_connection
