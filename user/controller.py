@@ -1,6 +1,6 @@
 import json
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request
 
 import user.service as user_service
 import be_utilities.response_model as responses
@@ -8,7 +8,6 @@ import be_utilities.response_model as responses
 
 from be_utilities.util_funcs import KNOWN_EXCEPTIONS
 from be_utilities.util_funcs import get_param_from_body as body
-from be_utilities.util_funcs import get_param_from_url as url
 
 bp = Blueprint('user', __name__, url_prefix='/user')
 
@@ -26,7 +25,7 @@ def get(user_id: str = None):
         return responses.success_response(users_json, "users")
     except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
-    except Exception as e:
+    except Exception:
         return responses.unknown_error_response()
 
 
@@ -35,10 +34,10 @@ def create():
     try:
         username = body(request, "username")
         password = body(request, "password")
-        return responses.success_response([user_service.create(username, password)], ["user_id"])
+        return responses.success_response(user_service.create(username, password), "user_id")
     except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
-    except Exception as e:
+    except Exception:
         return responses.unknown_error_response()
 
 @bp.route('/update', methods=['PATCH'])
@@ -51,7 +50,7 @@ def update():
         return responses.success_response(None)
     except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
-    except Exception as e:
+    except Exception:
         return responses.unknown_error_response()
 
 @bp.route('/delete', methods=['DELETE'])
@@ -62,22 +61,19 @@ def delete():
         return responses.success_response(None)
     except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
-    except Exception as e:
+    except Exception:
         return responses.unknown_error_response()
 
 @bp.route('/login', methods=['POST'])
 def login():
     try:
-        username = (request.json['username'])
-        password = (request.json['password'])
-    except KeyError as e:
-        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
-    try:
-        user, token = user_service.login(username, password)
-        return responses.success_response([json.loads(user.to_json()), token], key=["user", "token"])
+        username = body(request, "username")
+        password = body(request, "password")
+        _, token = user_service.login(username, password)
+        return responses.success_response(token)
     except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
-    except Exception as e:
+    except Exception:
         return responses.unknown_error_response()
 
 @bp.route('/logout', methods=['POST'])

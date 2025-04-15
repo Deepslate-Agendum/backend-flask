@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request
 import task.service as task_service
 from be_utilities.util_funcs import get_param_from_body as body
 from be_utilities.util_funcs import get_param_from_url as url
@@ -45,7 +45,7 @@ def create():
             task_service.create(workspace_id, name, description, tags, due_date, x_location, y_location)), key="task")
     except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(str(e), type(e).__name__)
-    except Exception as e:
+    except Exception:
         return responses.unknown_error_response()
 
 
@@ -64,7 +64,7 @@ def get_tasks(task_id: int = None):
         return responses.success_response(tasks_json, key="tasks")
     except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
-    except Exception as e:
+    except Exception:
         return responses.unknown_error_response()
 
 @bp.route('/update', methods=['PUT'])
@@ -82,7 +82,7 @@ def update():
         return responses.success_response(None)
     except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
-    except Exception as e:
+    except Exception:
         return responses.unknown_error_response()
 
 @bp.route('/delete', methods=['DELETE'])
@@ -93,5 +93,5 @@ def delete():
         return responses.success_response(None)
     except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
-    except Exception as e:
-        return responses.unknown_error_response(e)
+    except Exception:
+        return responses.unknown_error_response()

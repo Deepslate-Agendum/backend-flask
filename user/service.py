@@ -13,10 +13,7 @@ def get(user_id: str = None) -> List[User] | Optional[User]:
     """Get a user by ID, or all users if no ID is given."""
 
     if user_id is not None:
-        try:
-            return user_dao.get_by_id(user_id)
-        except EntityNotFoundException as e:
-            raise service_exceptions.MissingException(f"The given user ID '{user_id}' does not correspond to an existing user.")
+        return user_dao.get_by_id(user_id)
     else:
         return user_dao.get_all()
 
