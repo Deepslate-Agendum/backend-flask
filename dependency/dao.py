@@ -1,7 +1,7 @@
 from typing import List
 from dao_shared import get_document_by_id, get_documents_by_ids
 from db_python_util.db_classes import Dependency, ValueType, AllowedValue, Task
-from db_python_util.db_exceptions import DBException, EntityNotFoundException
+from db_python_util.db_exceptions import DBException, EntityNotFoundException, AlreadyExistsException
 from db_python_util.db_helper import ConnectionManager
 
 import task.dao as task_dao
@@ -35,10 +35,10 @@ def create(dependee_id: str, dependent_id: str, manner_name: str) -> Dependency:
     )
 
     if duplicates.count() > 0:
-        raise DBException(f"Dependency already exists between Task(id={dependee_id}) and Task(id={dependent_id})")
+        raise AlreadyExistsException(f"Dependency already exists between Task(id={dependee_id}) and Task(id={dependent_id})")
 
     if check_depends_on(dependee_id, dependent_id):
-        raise DBException(f"Task(id={dependee_id}) depends on Task(id={dependent_id})")
+        raise AlreadyExistsException(f"Task(id={dependee_id}) depends on Task(id={dependent_id})")
 
     manner = get_manner(manner_name)
 

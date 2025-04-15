@@ -1,7 +1,10 @@
-import json
-
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request
 import task.service as task_service
+from be_utilities.util_funcs import get_param_from_body as body
+from be_utilities.util_funcs import get_param_from_url as url
+from be_utilities.util_funcs import KNOWN_EXCEPTIONS
+import be_utilities.response_model as responses
+
 
 bp = Blueprint('task', __name__, url_prefix='/task')
 
@@ -26,61 +29,69 @@ def serialize_task(task):
         if field_value.field.name == "Y Location":
             fields.update({"y_location": float(field_value.value)})
     fields.update({"tags": tags})
-
     return fields
 
 @bp.route('/create', methods=['POST'])
 def create():
-    name = request.json["name"]
-    description = request.json["description"]
-    tags = request.json["tags"]
-    workspace_id = request.json["workspace_id"]
-    due_date = request.json["due_date"]
-    x_location = request.json.get("x_location", 0.0)
-    y_location = request.json.get("y_location", 0.0)
+    try:
+        name = body(request, "name")
+        description = body(request, "description")
+        tags = body(request, "tags")
+        workspace_id = body(request, "workspace_id")
+        due_date = body(request, "due_date")
+        x_location = body(request, "x_location", 0.0)
+        y_location = body(request, "y_location", 0.0)
+        return responses.success_response(serialize_task(
+            task_service.create(workspace_id, name, description, tags, due_date, x_location, y_location)), key="task")
+    except KNOWN_EXCEPTIONS as e:
+        return responses.known_error_response(str(e), type(e).__name__)
+    except Exception:
+        return responses.unknown_error_response()
 
-    task = task_service.create(workspace_id, name, description, tags, due_date, x_location, y_location)
-    if task is not None:
-        return jsonify(serialize_task(task)), 200
-    else:
-        return jsonify({"error": "Create task failed"}), 500
 
 @bp.route('/', methods=['GET'])
-@bp.route('/<int:task_id>', methods=['GET'])
+@bp.route('/<string:task_id>', methods=['GET'])
 def get_tasks(task_id: int = None):
-    workspace_id = request.args['workspace_id']
+    try:
+        workspace_id = url(request, "workspace_id")
+        tasks = task_service.get(task_id, workspace_id)
 
-    tasks = task_service.get(task_id, workspace_id)
-
-    # HACK: same deal as in user
-    if isinstance(tasks, list):
-        tasks_json = [serialize_task(task) for task in tasks]
-    else:
-        tasks_json = serialize_task(tasks)
-
-    return jsonify({'tasks': tasks_json}), 200
+        # HACK: same deal as in user
+        if isinstance(tasks, list):
+            tasks_json = [serialize_task(task) for task in tasks]
+        else:
+            tasks_json = serialize_task(tasks)
+        return responses.success_response(tasks_json, key="tasks")
+    except KNOWN_EXCEPTIONS as e:
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
+    except Exception:
+        return responses.unknown_error_response()
 
 @bp.route('/update', methods=['PUT'])
 def update():
-    task_id = request.json["id"]
-    name = request.json["name"]
-    description = request.json["description"]
-    tags = request.json["tags"]
-    workspace_id = request.json["workspace_id"]
-    due_date = request.json["due_date"]
-    x_location = request.json.get("x_location", 0.0)
-    y_location = request.json.get("y_location", 0.0)
-
-    if task_service.update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location):
-        return "Success", 200
-    else:
-        return jsonify({"error": "Task not found"}), 404
+    try:
+        task_id = body(request, "id")
+        name = body(request, "name")
+        description = body(request, "description")
+        tags = body(request, "tags")
+        workspace_id = body(request, "workspace_id")
+        due_date = body(request, "due_date")
+        x_location = body(request, "x_location", 0.0)
+        y_location = body(request, "y_location", 0.0)
+        task_service.update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location)
+        return responses.success_response(None)
+    except KNOWN_EXCEPTIONS as e:
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
+    except Exception:
+        return responses.unknown_error_response()
 
 @bp.route('/delete', methods=['DELETE'])
 def delete():
-    task_id = request.json["id"]
-
-    if task_service.delete(task_id):
-        return "Success", 200
-    else:
-        return jsonify({"error": "Task not found"}), 404
+    try:
+        task_id = body(request, "id")
+        task_service.delete(task_id)
+        return responses.success_response(None)
+    except KNOWN_EXCEPTIONS as e:
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
+    except Exception:
+        return responses.unknown_error_response()

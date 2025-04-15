@@ -1,12 +1,16 @@
 from flask import (
     Blueprint,
     request,
-    jsonify
 )
-
+import be_utilities.response_model as responses
 from dao_shared import serialize_id
 import dependency.service as service
-from db_python_util.db_exceptions import DBException
+
+
+from be_utilities.util_funcs import KNOWN_EXCEPTIONS
+
+from be_utilities.util_funcs import get_param_from_body as body
+from be_utilities.util_funcs import get_param_from_url as url
 
 blueprint = Blueprint(
     name='dependency',
@@ -21,69 +25,44 @@ def responsify_dependency(dependency):
         'dependent': serialize_id(dependency.dependent_task.id),
         'manner': dependency.manner.value
     }
-
 @blueprint.post('/')
 def create_dependency(workspace_id: str):
-    dependee_id = request.json['dependee_id']
-    dependent_id = request.json['dependent_id']
-    manner = request.json['manner']
-
     try:
+        dependee_id = body(request, "dependee_id")
+        dependent_id = body(request, "dependent_id")
+        manner = body(request, "manner")
         dependency = service.create(dependee_id, dependent_id, manner)
-    except DBException as e:
-        return jsonify({
-            "status": "failure",
-            "error": e.message
-        }), 400
+        return responses.success_response(responsify_dependency(dependency))
+    except KNOWN_EXCEPTIONS as e:
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
+    except Exception:
+        return responses.unknown_error_response()
 
-    return jsonify({
-        'status': 'success',
-        'result': responsify_dependency(dependency),
-    }), 200
 
 @blueprint.get('/')
 def get_dependencies(workspace_id: str):
     try:
-        ids = request.args.get('ids')
+        ids = url(request, 'ids')
         if ids is None:
             dependencies = service.get_all(workspace_id)
         else:
             ids = ids.split(',')
             dependencies = service.get_multiple_by_id(ids)
-    except DBException as e:
-        return jsonify({
-            "status": "failure",
-            "error": e.message
-        }), 400
 
-    return jsonify({
-        'status': 'success',
-        'result': [responsify_dependency(dependency) for dependency in dependencies],
-    }), 200
-
-@blueprint.get('/<dependency_id>')
-def get_dependency(workspace_id: str, dependency_id: str):
-    try:
-        dependency = service.get_by_id(dependency_id)
-    except DBException as e:
-        return jsonify({
-            "status": "failure",
-            "error": e.message
-        }), 400
-
-    return jsonify({
-        'status': 'success',
-        'result': responsify_dependency(dependency),
-    })
+        return responses.success_response([responsify_dependency(dependency) for dependency in dependencies],
+                                          key="dependency")
+    except KNOWN_EXCEPTIONS as e:
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
+    except Exception:
+        return responses.unknown_error_response()
 
 @blueprint.delete('/<dependency_id>')
 def delete_dependency(workspace_id: str, dependency_id: str):
     try:
         service.delete(dependency_id)
-    except DBException as e:
-        return jsonify({
-            "status": "failure",
-            "error": e.message
-        }), 400
+        return responses.success_response(None)
+    except KNOWN_EXCEPTIONS as e:
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
+    except Exception:
+        return responses.unknown_error_response()
 
-    return jsonify({'status': 'success'})

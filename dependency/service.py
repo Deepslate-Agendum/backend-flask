@@ -3,6 +3,7 @@ from typing import List
 from db_python_util.db_classes import Dependency
 import dependency.dao as dao
 
+
 def create(dependee_id: str, dependent_id: str, manner: str):
     dependency = dao.create(dependee_id, dependent_id, manner)
     return dependency

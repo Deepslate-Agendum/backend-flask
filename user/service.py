@@ -6,7 +6,9 @@ import uuid
 import user.dao as user_dao
 import user_token.service as token_service
 from db_python_util.db_classes import User
+from db_python_util.db_exceptions import EntityNotFoundException
 
+import be_utilities.service_exceptions as service_exceptions
 def get(user_id: str = None) -> List[User] | Optional[User]:
     """Get a user by ID, or all users if no ID is given."""
 
@@ -30,17 +32,13 @@ def create(username: str, password: str) -> Optional[str]:
 
 def update(user_id: str, username: str, password: str):
     """Update a user given its ID."""
-    user = user_dao.get_by_id(user_id)
-
+    user = get(user_id)
     salt = user.password_salt
     user_dao.update(user_id, username, hash_password(password + salt))
 
 def delete(user_id: str):
     """Delete a user given its ID."""
-    if user_dao.get_by_id(user_id) is None:
-        return False
-
-    return user_dao.delete(user_id)
+    user_dao.delete(user_id)
 
 def login(username: str, password: str) -> Optional[Tuple[User, str]]:
     user = user_dao.get_by_username(username)
