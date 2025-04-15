@@ -41,8 +41,8 @@ def create():
         due_date = body(request, "due_date")
         x_location = body(request, "x_location", 0.0)
         y_location = body(request, "y_location", 0.0)
-        return responses.success_response("create_task",
-            serialize_task(task_service.create(workspace_id, name, description, tags, due_date, x_location, y_location)), object_name="task")
+        return responses.success_response(serialize_task(
+            task_service.create(workspace_id, name, description, tags, due_date, x_location, y_location)), key="task")
     except KNOWN_EXCEPTIONS as e:
         return responses.known_error_response(str(e), type(e).__name__)
     except Exception as e:
@@ -61,9 +61,9 @@ def get_tasks(task_id: int = None):
             tasks_json = [serialize_task(task) for task in tasks]
         else:
             tasks_json = serialize_task(tasks)
-        return responses.success_response("get_tasks", tasks_json, object_name="tasks")
+        return responses.success_response(tasks_json, key="tasks")
     except KNOWN_EXCEPTIONS as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
 
@@ -79,9 +79,9 @@ def update():
         x_location = body(request, "x_location", 0.0)
         y_location = body(request, "y_location", 0.0)
         task_service.update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location)
-        return responses.success_response("update_task")
+        return responses.success_response(None)
     except KNOWN_EXCEPTIONS as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
 
@@ -90,8 +90,8 @@ def delete():
     try:
         task_id = body(request, "id")
         task_service.delete(task_id)
-        return responses.success_response(message="delete_task")
+        return responses.success_response(None)
     except KNOWN_EXCEPTIONS as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response(e)

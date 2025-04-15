@@ -23,9 +23,9 @@ def get(user_id: str = None):
             users_json = [json.loads(user.to_json()) for user in get_user_result]
         else:
             users_json = json.loads(get_user_result.to_json())
-        return responses.success_response("get_users", users_json, "users")
+        return responses.success_response(users_json, "users")
     except KNOWN_EXCEPTIONS as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
 
@@ -35,9 +35,9 @@ def create():
     try:
         username = body(request, "username")
         password = body(request, "password")
-        return responses.success_response("create_user", [user_service.create(username, password)], ["user_id"])
+        return responses.success_response([user_service.create(username, password)], ["user_id"])
     except KNOWN_EXCEPTIONS as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
 
@@ -48,9 +48,9 @@ def update():
         username = body(request, "username")
         password = body(request, "password")
         user_service.update(user_id, username, password)
-        return responses.success_response("update_user")
+        return responses.success_response(None)
     except KNOWN_EXCEPTIONS as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
 
@@ -59,9 +59,9 @@ def delete():
     try:
         user_id = body(request, "id")
         user_service.delete(user_id)
-        return responses.success_response("delete_user")
+        return responses.success_response(None)
     except KNOWN_EXCEPTIONS as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
 
@@ -71,13 +71,12 @@ def login():
         username = (request.json['username'])
         password = (request.json['password'])
     except KeyError as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
     try:
         user, token = user_service.login(username, password)
-        return responses.success_response("login_user",
-        [json.loads(user.to_json()), token], object_name=["user", "token"])
+        return responses.success_response([json.loads(user.to_json()), token], key=["user", "token"])
     except KNOWN_EXCEPTIONS as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
 

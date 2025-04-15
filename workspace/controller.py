@@ -18,9 +18,9 @@ def create():
     try:
         name = body(request, "name")
         owner = body(request, "owner")
-        return responses.success_response("create_workspace", {"workspace_id" : ws_service.create(name, owner)})
+        return responses.success_response({"workspace_id": ws_service.create(name, owner)})
     except KNOWN_EXCEPTIONS as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
 
@@ -34,9 +34,9 @@ def get(workspace_id: str = None):
             workspaces_json = [json.loads(workspace.to_json()) for workspace in workspaces]
         else:
             workspaces_json = json.loads(workspaces.to_json())
-        return responses.success_response("get_workspaces", workspaces_json)
+        return responses.success_response(workspaces_json)
     except KNOWN_EXCEPTIONS as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
 
@@ -47,9 +47,9 @@ def update():
         name = body(request, "name")
         owner = body(request, "owner")
         ws_service.update(workspace_id, name, owner)
-        return responses.success_response("update_workspace")
+        return responses.success_response(None)
     except KNOWN_EXCEPTIONS as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
 
@@ -58,9 +58,9 @@ def delete():
     try:
         workspace_id = body(request, "id")
         ws_service.delete(workspace_id)
-        return responses.success_response("delete_workspace")
+        return responses.success_response(None)
     except KNOWN_EXCEPTIONS as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
 

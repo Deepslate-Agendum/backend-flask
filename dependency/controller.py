@@ -33,9 +33,9 @@ def create_dependency(workspace_id: str):
         dependent_id = body(request, "dependent_id")
         manner = body(request, "manner")
         dependency = service.create(dependee_id, dependent_id, manner)
-        return responses.success_response("create_dependency",responsify_dependency(dependency))
+        return responses.success_response(responsify_dependency(dependency))
     except KNOWN_EXCEPTIONS as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
 
@@ -50,10 +50,10 @@ def get_dependencies(workspace_id: str):
             ids = ids.split(',')
             dependencies = service.get_multiple_by_id(ids)
 
-        return responses.success_response("get_dependencies",
-            [responsify_dependency(dependency) for dependency in dependencies], object_name="dependency")
+        return responses.success_response([responsify_dependency(dependency) for dependency in dependencies],
+                                          key="dependency")
     except KNOWN_EXCEPTIONS as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
 
@@ -61,9 +61,9 @@ def get_dependencies(workspace_id: str):
 def delete_dependency(workspace_id: str, dependency_id: str):
     try:
         service.delete(dependency_id)
-        return responses.success_response("delete_dependency")
+        return responses.success_response(None)
     except KNOWN_EXCEPTIONS as e:
-        return responses.known_error_response(message=str(e), type=type(e).__name__)
+        return responses.known_error_response(message=str(e), exception_type=type(e).__name__)
     except Exception as e:
         return responses.unknown_error_response()
 
