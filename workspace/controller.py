@@ -3,6 +3,7 @@ import json
 from flask import Blueprint, jsonify, request
 import workspace.service as ws_service
 import base64
+import user_token.service as user_token_service
 
 workspaces_bp = Blueprint('workspaces', __name__, url_prefix='/workspace')
 workspace_bp = Blueprint('workspace', __name__, url_prefix='/<workspace_id>')
@@ -24,8 +25,9 @@ def create():
 def get(workspace_id: str = None):
     user_token = request.headers.get('Authorization').split()[1]
     user_token = base64.b64decode(user_token)
+    user_id = user_token_service.authenticate_token(user_token)
 
-    workspaces = ws_service.get(workspace_id, user_token)
+    workspaces = ws_service.get(workspace_id, user_id)
 
     # HACK: same deal as in user
     if isinstance(workspaces, list):

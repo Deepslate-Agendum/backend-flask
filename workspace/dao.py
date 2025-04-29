@@ -2,7 +2,7 @@ from dao_shared import get_document_by_id
 from db_python_util.db_classes import Workspace, TaskType
 from db_python_util.db_helper import ConnectionManager
 import user.dao as user_dao
-import user_token.service as user_token_service
+
 
 @ConnectionManager.requires_connection
 def create(name, owner):
@@ -47,12 +47,10 @@ def get_by_name(name):
     return workspaces
 
 @ConnectionManager.requires_connection
-def get_all(user_token):
+def get_all(user_id):
     """
     Get all Workspaces
     """
-
-    user_id = user_token_service.authenticate_token(user_token)
 
     workspaces = Workspace.objects(users = user_id)
 
