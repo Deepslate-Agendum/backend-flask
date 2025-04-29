@@ -52,7 +52,7 @@ def login(username: str, password: str) -> Optional[Tuple[User, bytes]]:
 
     return user, token_service.register_new_token(user)
 
-def logout(token: str) -> None:
+def logout(token: bytes) -> None:
     try:
         token_service.release_token(token)
     except Exception as e:
