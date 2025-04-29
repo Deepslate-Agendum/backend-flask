@@ -51,9 +51,8 @@ def get_all(user_token):
     """
 
     user_id = user_token_service.authenticate_token(user_token)
-    user_owner = user_dao.get_by_id(user_id)
 
-    workspaces = Workspace.objects(users = user_owner)
+    workspaces = Workspace.objects(users = user_id)
 
     return workspaces
 
