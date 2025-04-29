@@ -21,7 +21,9 @@ def create():
 @workspaces_bp.route('/', methods=['GET'])
 @workspace_bp.route('/', methods=['GET'])
 def get(workspace_id: str = None):
-    workspaces = ws_service.get(workspace_id)
+    user_token = request.get('Authorization').split()[1]
+
+    workspaces = ws_service.get(workspace_id, user_token)
 
     # HACK: same deal as in user
     if isinstance(workspaces, list):

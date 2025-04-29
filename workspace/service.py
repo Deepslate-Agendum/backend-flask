@@ -23,9 +23,9 @@ def delete(workspace_id: int) -> bool:
 
     return ws_dao.delete(workspace_id)
 
-def get(workspace_id: int = None) -> list | None:
+def get(workspace_id: int = None, user_token: str = None) -> list | None:
     """Get a workspace by ID, or all workspaces if no ID is given."""
     if workspace_id is None:
-        return ws_dao.get_all()
+        return ws_dao.get_all(user_token)
     else:
         return ws_dao.get_by_id(workspace_id)
