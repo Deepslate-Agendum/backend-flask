@@ -15,9 +15,9 @@ class UserData:
         self.last_used_timestamp = last_used_timestamp
     
     
-def generate_token() -> str:
+def generate_token() -> bytes:
     """Do not use, internal function for user token generation"""
-    return str(secrets.token_bytes(USER_TOKEN_LENGTH))
+    return secrets.token_bytes(USER_TOKEN_LENGTH)
 
 def register_new_token(user_id: str) -> str:
     """Register a token to a user who has been authenticated"""
