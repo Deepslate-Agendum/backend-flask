@@ -4,8 +4,6 @@ import workspace.dao as ws_dao
 
 def create(name: str, owner: str) -> int:
     """Create a new workspace."""
-    if ws_dao.get_by_name(name) is not None:
-        return -1
 
     return ws_dao.create(name, owner)
 
