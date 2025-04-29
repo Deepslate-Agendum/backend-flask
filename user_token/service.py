@@ -21,9 +21,11 @@ def generate_token() -> bytes:
 
 def register_new_token(user_id: str) -> bytes:
     """Register a token to a user who has been authenticated"""
-    if user_to_token_map.get(user_id) is not None:
-        raise Exception("This user is already registered to a token")
-    
+    existing_token = user_to_token_map.get(user_id)
+    if existing_token is not None:
+        refresh_token(existing_token)
+        return existing_token
+
     token = generate_token()
     while token_to_user_data_map.get(token) is not None:
         token = generate_token()
