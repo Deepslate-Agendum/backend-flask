@@ -42,7 +42,7 @@ def delete(user_id: str):
 
     return user_dao.delete(user_id)
 
-def login(username: str, password: str) -> Optional[Tuple[User, str]]:
+def login(username: str, password: str) -> Optional[Tuple[User, bytes]]:
     user = user_dao.get_by_username(username)
     # TODO: please note that this fails if the user isn't found, this is assuming AGENDUM-62 gets merged
     password_hash = hash_password(password + user.password_salt)
@@ -50,10 +50,9 @@ def login(username: str, password: str) -> Optional[Tuple[User, str]]:
     if password_hash != user.password_hash:
         return
 
-
     return user, token_service.register_new_token(user)
 
-def logout(token: str) -> None:
+def logout(token: bytes) -> None:
     try:
         token_service.release_token(token)
     except Exception as e:
