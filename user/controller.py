@@ -44,7 +44,7 @@ def create():
 
 @bp.route('/update', methods=['PATCH'])
 def update():
-    user_id = request.json['id']
+    user_id = request.json['user_id']
     username = request.json['username']
     password = request.json['password']
 
