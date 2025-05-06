@@ -7,12 +7,12 @@ def create(name: str, owner: str) -> int:
 
     return ws_dao.create(name, owner)
 
-def update(workspace_id: int, name: str = None, owner: str = None) -> bool:
+def update(workspace_id: int, username: str = None, userid: str = None) -> bool:
     """Update a workspace."""
     if ws_dao.get_by_id(workspace_id) is None:
         return False
 
-    return ws_dao.update(workspace_id, name, owner)
+    return ws_dao.update(workspace_id, username, userid)
 
 def delete(workspace_id: int) -> bool:
     """Delete a workspace."""
