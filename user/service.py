@@ -32,8 +32,13 @@ def update(user_id: str, username: str, password: str):
     """Update a user given its ID."""
     user = user_dao.get_by_id(user_id)
 
-    salt = user.password_salt
-    user_dao.update(user_id, username, hash_password(password + salt))
+    if (username != ""):
+        user_dao.updateName(user_id, username)
+    if (password != ""):
+        salt = user.password_salt
+        user_dao.updatePassword(user_id, hash_password(password + salt))
+
+    
 
 def delete(user_id: str):
     """Delete a user given its ID."""

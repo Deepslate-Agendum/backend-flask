@@ -57,19 +57,21 @@ def get_all(user_id):
     return workspaces
 
 @ConnectionManager.requires_connection
-def update(workspace_id, name, owner):
+def update(workspace_id, username, userid):
     """
     Update a specific Workspace by its ID
     """
 
-    workspace = Workspace.objects(id = workspace_id)
-    if len(workspace) == 0:
-        return None
+    workspace = Workspace.objects(id = workspace_id).first()
     
-    if name is not None:
-        workspace.update_one(set__name = name)
-    if owner is not None:
-        workspace.update_one(set__users = [owner])
+    if username is not None:
+        user = user_dao.get_by_username(username)
+        workspace.update(push__users = user)
+
+    if userid is not None:
+        user = user_dao.get_by_id(userid)
+        workspace.update(pull__users = user)
+
 
     return True
 

@@ -39,11 +39,11 @@ def get(workspace_id: str = None):
 
 @workspaces_bp.route('/update', methods=['PATCH'])
 def update():
-    workspace_id = request.json['id']
-    name = request.json['name']
-    owner = request.json['owner']
+    workspace_id = request.json['workspaceId']
+    username = request.json.get('username')
+    userid = request.json.get('userId')
 
-    if ws_service.update(workspace_id, name, owner):
+    if ws_service.update(workspace_id, username, userid):
         return "Success", 200
     else:
         return jsonify({"error": "Workspace not found"}), 404
