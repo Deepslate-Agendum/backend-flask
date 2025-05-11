@@ -58,7 +58,7 @@ def create(name: str, password_hash: str, password_salt: str) -> str:
     return user.id.binary.hex()
 
 @ConnectionManager.requires_connection
-def update(id: str, name: str, password_hash: str):
+def updateName(id: str, name: str):
     user = get_by_id(id)
 
     user_with_name = get_by_username(name)
@@ -68,6 +68,12 @@ def update(id: str, name: str, password_hash: str):
     user.update(
         username=name,
         display_name=name, # TODO: we need a display name
+    )
+
+def updatePassword(id: str, password_hash: str):
+    user = get_by_id(id)
+
+    user.update(
         password_hash=password_hash,
     )
 
