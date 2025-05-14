@@ -18,7 +18,7 @@ def serialize_task(task):
         if field_value.field.name == "Description":
             fields.update({"description": field_value.value})
         if field_value.field.value_type.name == "Tag":
-            tags.append(field_value.field.name)
+            tags.append(field_value.allowed_value.value)
         if field_value.field.name == "Due Date":
             fields.update({"due_date": field_value.value})
         if field_value.field.name == "X Location":
