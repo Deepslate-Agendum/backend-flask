@@ -1,37 +1,41 @@
 import json
 
 from flask import Blueprint, jsonify, request
+from task.field_manager import FieldManager
 import task.service as task_service
 
 bp = Blueprint('task', __name__, url_prefix='/task')
 
 # HACK: serialize task
 def serialize_task(task):
+    field_manager = FieldManager(task)
+
+    dependencies = [dependency.pk.binary.hex() for dependency in task.dependencies]
+    title = field_manager.get_field_value("Name", 0)
+    description = field_manager.get_field_value("Description", 0)
+    due_date = field_manager.get_field_value("Due Date", 0)
+    status = field_manager.get_field_value("Status", 0).value
+    x_location = float(field_manager.get_field_value("X Location", 0))
+    y_location = float(field_manager.get_field_value("Y Location", 0))
+    tags = [tag.value for tag in field_manager.get_field_values("Tags")]
+
     fields = {
         "id": task.id.binary.hex(),
-        "dependencies": [dependency.pk.binary.hex() for dependency in task.dependencies],
+        "dependencies": dependencies,
+        "title": title,
+        "description": description,
+        "due_date": due_date,
+        "status": status,
+        "x_location": x_location,
+        "y_location": y_location,
+        "tags": tags,
     }
-    tags = []
-    for field_value in task.nonstatic_field_values:
-        if field_value.field.name == "Name":
-            fields.update({"title": field_value.value})
-        if field_value.field.name == "Description":
-            fields.update({"description": field_value.value})
-        if field_value.field.value_type.name == "Tag":
-            tags.append(field_value.allowed_value.value)
-        if field_value.field.name == "Due Date":
-            fields.update({"due_date": field_value.value})
-        if field_value.field.name == "X Location":
-            fields.update({"x_location": float(field_value.value)})
-        if field_value.field.name == "Y Location":
-            fields.update({"y_location": float(field_value.value)})
-    fields.update({"tags": tags})
 
     return fields
 
 @bp.route('/create', methods=['POST'])
 def create():
-    name = request.json["name"]
+    name = request.json["title"]
     description = request.json["description"]
     tags = request.json["tags"]
     workspace_id = request.json["workspace_id"]
@@ -63,15 +67,16 @@ def get_tasks(task_id: int = None):
 @bp.route('/update', methods=['PUT'])
 def update():
     task_id = request.json["id"]
-    name = request.json["name"]
-    description = request.json["description"]
-    tags = request.json["tags"]
-    workspace_id = request.json["workspace_id"]
-    due_date = request.json["due_date"]
-    x_location = request.json.get("x_location", 0.0)
-    y_location = request.json.get("y_location", 0.0)
+    name = request.json.get("title")
+    description = request.json.get("description")
+    tags = request.json.get("tags")
+    workspace_id = request.json.get("workspace_id")
+    due_date = request.json.get("due_date")
+    x_location = request.json.get("x_location")
+    y_location = request.json.get("y_location")
+    status = request.json.get("status")
 
-    if task_service.update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location):
+    if task_service.update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location, status):
         return "Success", 200
     else:
         return jsonify({"error": "Task not found"}), 404

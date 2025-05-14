@@ -1,10 +1,10 @@
 #skipping dependency for CRUD operations (02/18)
-from typing import Optional
+from typing import List, Optional
 
 
 from dao_shared import get_document_by_id
-from db_python_util.db_classes import Task, TaskType, Field, FieldValue, Workspace, ValueType
-from db_python_util.db_helper import create_tag, get_tag, ConnectionManager
+from db_python_util.db_classes import AllowedValue, Task, TaskType, Field, FieldValue, Workspace, ValueType
+from db_python_util.db_helper import create_tag, get_enum, get_tag, ConnectionManager
 from db_python_util.db_exceptions import EntityNotFoundException, DBIntegrityException
 from mongoengine.errors import ValidationError
 
@@ -13,7 +13,15 @@ import workspace.dao as workspace_dao
 
 
 @ConnectionManager.requires_connection
-def create(workspace_id: str, name: str, description: str, tags: list = None, due_date: str = None, x_location:float = 0, y_location:float = 0):
+def create(
+        workspace_id: str,
+        name: str,
+        description: str,
+        tags: List[str],
+        due_date: str,
+        x_location: float = 0,
+        y_location: float = 0,
+    ):
     """
     Create a new Task
     Currently only supports creating a default Task
@@ -37,6 +45,10 @@ def create(workspace_id: str, name: str, description: str, tags: list = None, du
     field_manager.add_field_value("Due Date", due_date)
     field_manager.add_field_value("X Location", x_location)
     field_manager.add_field_value("Y Location", y_location)
+
+    status_type, statuses = get_enum("Status")
+    not_started_status = statuses["Not Started"]
+    field_manager.add_field_value("Status", not_started_status)
 
     task.save()
 
@@ -70,30 +82,7 @@ def get_all(workspace_id: Optional[str]):
     return list(tasks)
 
 @ConnectionManager.requires_connection
-def update(task_id, workspace_id, name, description, tags, due_date, x_location: float, y_location: float):
-    """
-    Update the task by id
-    Currently only supports default task updateality
-    """
-
-    task = get_by_id(task_id)
-
-    field_manager = FieldManager(task)
-    if name is not None:
-        field_manager.set_field_value("Name", 0, name)
-
-    if description is not None:
-        field_manager.set_field_value("Description", 0, description)
-
-    if due_date is not None:
-        field_manager.set_field_value("Due Date", 0, due_date)
-
-    if x_location is not None:
-        field_manager.set_field_value("X Location", 0, x_location)
-
-    if y_location is not None:
-        field_manager.set_field_value("Y Location", 0, y_location)
-
+def update_tags(field_manager: FieldManager, tags: List[str]) -> None:
     expected_tag_values = {
         get_tag(tag_name) or create_tag(tag_name) for tag_name in tags
     }
@@ -113,16 +102,57 @@ def update(task_id, workspace_id, name, description, tags, due_date, x_location:
     for tag in to_add_tag_values:
         field_manager.add_field_value("Tags", tag)
 
-    # BUG: current version doesn't update workspaces properly so will need to update this
-    # get the workspace the task was originally assigned to
-    original_workspace = Workspace.objects(tasks__in = [task]).first()
-    if original_workspace != None:
-        original_workspace_id = original_workspace.id.binary.hex()
-        if original_workspace_id != workspace_id: # if they aren't the same then update the workspace
-            original_workspace.update_one(pull__tasks = task)
+@ConnectionManager.requires_connection
+def update(
+        task_id: str,
+        workspace_id: Optional[str] = None,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        due_date: Optional[str] = None,
+        x_location: Optional[float] = None,
+        y_location: Optional[float] = None,
+        status: Optional[str] = None,
+    ):
+    """
+    Update the task by id
+    Currently only supports default task updateality
+    """
 
-            workspace = Workspace.objects(id = workspace_id)
-            workspace.update_one(push__tasks = task)
+    task = get_by_id(task_id)
+
+    field_manager = FieldManager(task)
+    if name is not None:
+        field_manager.set_field_value("Name", 0, name)
+
+    if description is not None:
+        field_manager.set_field_value("Description", 0, description)
+
+    if due_date is not None:
+        field_manager.set_field_value("Due Date", 0, due_date)
+
+    if x_location is not None:
+        field_manager.set_field_value("X Location", 0, str(x_location))
+
+    if y_location is not None:
+        field_manager.set_field_value("Y Location", 0, str(y_location))
+
+    if status is not None:
+        status_type, statuses = get_enum("Status")
+        status = statuses[status]
+        field_manager.set_field_value("Status", 0, status)
+
+    if tags is not None:
+        update_tags(field_manager, tags)
+
+    if workspace_id is not None:
+        original_workspace = Workspace.objects(tasks__in = [task]).first()
+        workspace = Workspace.objects(id=workspace_id).first()
+
+        original_workspace_id = original_workspace.id.binary.hex()
+        if original_workspace_id != workspace_id:
+            original_workspace.update(pull__tasks=task)
+            workspace.update(push__tasks=task)
 
     return True
 

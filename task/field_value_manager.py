@@ -1,7 +1,9 @@
-from typing import Union
+from typing import List, Optional, Union
 from db_python_util.db_classes import FieldValue, AllowedValue, Task
 
 from mongoengine import Document
+
+from db_python_util.db_exceptions.db_integrity_exception import DBIntegrityException
 
 
 # TODO: this will have to be reworked for cardinality requirements (ie don't save values immediately)
@@ -22,35 +24,50 @@ class FieldValueManager:
     # TODO: deserialization based on type?
     def get_value(self, index: int) -> Union[str, AllowedValue]:
         field_value = self.values[index]
-        value = field_value.value or field_value.allowed_value.fetch()
+        value = field_value.value if field_value.value is not None else field_value.allowed_value.fetch()
         return value
 
-    def set_value(self, index: int, value: str) -> None:
-        field_value_reference = self.values[index]
-        field_value = field_value_reference.fetch()
-        field_value.update(value=value)
-        field_value.save()
+    def get_values(self) -> List[Union[str, AllowedValue]]:
+        values = [self.get_value(i) for i in range(self.get_count())]
+        return values
 
-    # TODO: validation based on whether field type is an enum?
+    def set_value(self, index: int, value: Union[str, AllowedValue]) -> None:
+        if isinstance(value, str):
+            self._set_field_value(index, value, None)
+        else:
+            self._set_field_value(index, None, value)
+
+    def add_value(self, value: Union[str, AllowedValue]) -> None:
+        if isinstance(value, str):
+            field_value = FieldValue(
+                value=value,
+                field=self.field,
+            )
+        else:
+            field_value = FieldValue(
+                allowed_value=value,
+                field=self.field,
+            )
+
+        self._add_field_value(field_value)
+
     def _add_field_value(self, field_value: FieldValue):
         field_value.save()
         self.values.append(field_value)
         self.task.nonstatic_field_values.append(field_value)
         self.task.save()
 
-    def add_value(self, value: str) -> None:
-        field_value = FieldValue(
-            value=value,
-            field=self.field,
-        )
-        self._add_field_value(field_value)
+    def _set_field_value(self, index: int, value: Optional[str], allowed_value: Optional[AllowedValue]):
+        if (value is None) == (allowed_value is None):
+            raise DBIntegrityException(FieldValue, "Exactly one of `value` or `allowed_value` must be non-null.")
 
-    def add_allowed_value(self, value: AllowedValue) -> None:
-        field_value = FieldValue(
-            allowed_value=value,
-            field=self.field,
+        field_value_reference = self.values[index]
+        field_value = field_value_reference.fetch()
+        field_value.update(
+            value=value,
+            allowed_value=allowed_value,
         )
-        self._add_field_value(field_value)
+        field_value.save()
 
     def pop_value(self, index: int) -> None:
         field_value_reference = self.values.pop(index)

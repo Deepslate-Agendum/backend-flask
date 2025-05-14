@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Union
+from typing import List, Union
 
 from db_python_util.db_classes import AllowedValue, Field, Task
 from db_python_util.db_exceptions.db_integrity_exception import DBIntegrityException
@@ -30,7 +30,7 @@ class FieldManager:
 
         return name_map
 
-    def fetch_field(self, name):
+    def _fetch_field(self, name):
         # TODO: fields are not guaranteed to be unique by name (probably should include the type)
         fields = Field.objects(name=name)
         if len(fields) != 1:
@@ -39,43 +39,44 @@ class FieldManager:
         field = fields[0]
         return field
 
-    def get_field_manager(self, name):
+    def _get_field_manager(self, name):
         field_manager = self.name_map.get(name)
         if field_manager is None:
-            field = self.fetch_field(name)
+            field = self._fetch_field(name)
             field_manager = self.name_map[name] = FieldValueManager(self.task, field, [])
 
         return field_manager
 
     def get_field_value_count(self, name) -> int:
-        field_manager = self.get_field_manager(name)
+        field_manager = self._get_field_manager(name)
         count = field_manager.get_count()
         return count
 
-    def get_field_value(self, name, index: int) -> str:
-        field_manager = self.get_field_manager(name)
+    def get_field_value(self, name, index: int) -> Union[str, AllowedValue]:
+        field_manager = self._get_field_manager(name)
         value = field_manager.get_value(index)
         return value
 
-    def set_field_value(self, name, index: int, value: str) -> None:
-        field_manager = self.get_field_manager(name)
+    def get_field_values(self, name: str) -> List[Union[str, AllowedValue]]:
+        field_manager = self._get_field_manager(name)
+        values = field_manager.get_values()
+        return values
+
+    def set_field_value(self, name, index: int, value: Union[str, AllowedValue]) -> None:
+        field_manager = self._get_field_manager(name)
         field_manager.set_value(index, value)
 
     def add_field_value(self, name, value: Union[str, AllowedValue]) -> None:
-        field_manager = self.get_field_manager(name)
-
-        if isinstance(value, str):
-            field_manager.add_value(value)
-        else:
-            field_manager.add_allowed_value(value)
+        field_manager = self._get_field_manager(name)
+        field_manager.add_value(value)
 
     def pop_field_value(self, name, index: int) -> None:
-        field_manager = self.get_field_manager(name)
+        field_manager = self._get_field_manager(name)
         field_manager.pop_value(index)
 
     def to_dictionary(self):
         dictionary = {
-            name: [field_manager.get_value(i) for i in range(field_manager.get_count())]
+            name: field_manager.get_values()
             for name, field_manager in self.name_map.items()
         }
         return dictionary
