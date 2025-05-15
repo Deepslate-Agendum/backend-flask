@@ -1,17 +1,27 @@
 #skipping dependency for CRUD operations (02/18)
-from typing import Optional
+from typing import List, Optional
 
 
 from dao_shared import get_document_by_id
-from db_python_util.db_classes import Task, TaskType, Field, FieldValue, Workspace, ValueType
-from db_python_util.db_helper import createTagField, ConnectionManager
-from db_python_util.db_exceptions import EntityNotFoundException
+from db_python_util.db_classes import AllowedValue, Task, TaskType, Field, FieldValue, Workspace, ValueType
+from db_python_util.db_helper import create_tag, get_enum, get_tag, ConnectionManager
+from db_python_util.db_exceptions import EntityNotFoundException, DBIntegrityException
 from mongoengine.errors import ValidationError
 
+from task.field_manager import FieldManager
 import workspace.dao as workspace_dao
 
+
 @ConnectionManager.requires_connection
-def create(workspace_id: str, name: str, description: str, tags: list = None, due_date: str = None, x_location:float = 0, y_location:float = 0):
+def create(
+        workspace_id: str,
+        name: str,
+        description: str,
+        tags: List[str],
+        due_date: str,
+        x_location: float = 0,
+        y_location: float = 0,
+    ):
     """
     Create a new Task
     Currently only supports creating a default Task
@@ -19,67 +29,29 @@ def create(workspace_id: str, name: str, description: str, tags: list = None, du
 
     # TODO in later versions: split out getting a task type into a seperate helper function
     # get the default task type for creating a default task
-    default_task_type = TaskType.objects(name = "Default")
-    default_task_type = default_task_type[0]
+    default_task_type = TaskType.objects(name="Default").first()
 
-    # TODO in later versions: split out getting a Field into a seperate function
-    # get the fields for creating field values of the default task type
-    name_field = Field.objects(name = "Name")
-    name_field = name_field[0]
-
-    description_field = Field.objects(name = "Description")
-    description_field = description_field[0]
-
-    # get the tag Value Type
-    tag_value_type = ValueType.objects(name="Tag").first()
-
-    tag_fields = []
-    for tag in tags:
-        field = Field.objects(name = tag, value_type = tag_value_type).first() or createTagField(tag)
-        tag_fields.append(field)
-
-    due_date_field = Field.objects(name = "Due Date")
-    due_date_field = due_date_field[0]
-
-    x_location_field = Field.objects(name = "X Location").first()
-    y_location_field = Field.objects(name = "Y Location").first()
-
-    # TODO in later versions: split out creating Field Values into a seperate helper function
-    # create non-static field values for the new task
-    ns_field_values = []
-
-    name_field_value = FieldValue(value=name, field=name_field)
-    name_field_value.save()
-    ns_field_values.append(name_field_value)
-
-    description_field_value = FieldValue(value = description, field = description_field, allowed_value = None)
-    description_field_value.save()
-    ns_field_values.append(description_field_value)
-
-    for field in tag_fields:
-        tag_field_value = FieldValue(value = 'True', field = field, allowed_value = None)
-        tag_field_value.save()
-        ns_field_values.append(tag_field_value)
-
-    due_date_field_value = FieldValue(value = due_date, field = due_date_field, allowed_value = None)
-    due_date_field_value.save()
-    ns_field_values.append(due_date_field_value)
-
-    x_location_field_value = FieldValue(value = str(x_location), field = x_location_field, allowed_value = None)
-    x_location_field_value.save()
-    ns_field_values.append(x_location_field_value)
-
-    y_location_field_value = FieldValue(value = str(y_location), field = y_location_field, allowed_value = None)
-    y_location_field_value.save()
-    ns_field_values.append(y_location_field_value)
-
-
-    # create the task
-    task = Task(nonstatic_field_values = ns_field_values, dependencies = [], task_type = default_task_type)
+    task = Task(task_type=default_task_type)
     task.save()
 
-    # BUG: doesn't update workspace with the task
-    # update workspace with task
+    field_manager = FieldManager(task)
+    field_manager.add_field_value("Name", name)
+    field_manager.add_field_value("Description", description)
+
+    for tag_name in tags:
+        tag = get_tag(tag_name) or create_tag(tag_name)
+        field_manager.add_field_value("Tags", tag)
+
+    field_manager.add_field_value("Due Date", due_date)
+    field_manager.add_field_value("X Location", x_location)
+    field_manager.add_field_value("Y Location", y_location)
+
+    status_type, statuses = get_enum("Status")
+    not_started_status = statuses["Not Started"]
+    field_manager.add_field_value("Status", not_started_status)
+
+    task.save()
+
     workspace = Workspace.objects(id = workspace_id)
     workspace.update_one(push__tasks = task)
 
@@ -90,7 +62,8 @@ def get_by_id(id):
     """
     Get the task by id
     """
-    return get_document_by_id(Task, id)
+    task = get_document_by_id(Task, id)
+    return task
 
 @ConnectionManager.requires_connection
 def get_all(workspace_id: Optional[str]):
@@ -109,62 +82,77 @@ def get_all(workspace_id: Optional[str]):
     return list(tasks)
 
 @ConnectionManager.requires_connection
-def update(task_id, workspace_id, name, description, tags, due_date, x_location: float, y_location: float):
+def update_tags(field_manager: FieldManager, tags: List[str]) -> None:
+    expected_tag_values = {
+        get_tag(tag_name) or create_tag(tag_name) for tag_name in tags
+    }
+
+    actual_tag_values = set()
+
+    for i in range(field_manager.get_field_value_count("Tags") - 1, -1, -1):
+        tag = field_manager.get_field_value("Tags", i)
+
+        if tag not in expected_tag_values:
+            field_manager.pop_field_value("Tags", i)
+        else:
+            actual_tag_values.add(tag)
+
+    to_add_tag_values = expected_tag_values - actual_tag_values
+
+    for tag in to_add_tag_values:
+        field_manager.add_field_value("Tags", tag)
+
+@ConnectionManager.requires_connection
+def update(
+        task_id: str,
+        workspace_id: Optional[str] = None,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        due_date: Optional[str] = None,
+        x_location: Optional[float] = None,
+        y_location: Optional[float] = None,
+        status: Optional[str] = None,
+    ):
     """
     Update the task by id
     Currently only supports default task updateality
     """
 
-    task = Task.objects(id = task_id)
-    if len(task) == 0:
-        return False
+    task = get_by_id(task_id)
 
-    new_tags = tags.copy()
+    field_manager = FieldManager(task)
+    if name is not None:
+        field_manager.set_field_value("Name", 0, name)
 
-    # go through the current field values and update them
-    for field_value in task[0].nonstatic_field_values:
-        field_value_objects = FieldValue.objects(id = field_value.id)
-        field_value_object = field_value_objects[0]
-        if field_value_object.field.name == "Name":
-            if name is not None:
-                field_value_objects.update_one(set__value = name)
-        if field_value_object.field.name == "Description":
-            if description is not None:
-                field_value_objects.update_one(set__value = description)
-        if field_value_object.field.value_type.name == "Tag":
-            if field_value.field.name in tags: # if the tag already exists on the task then take that tag off of the new tags list and do nothing
-                new_tags.remove(field_value.field.name)
-                continue
-            else: # otherwise delete the tag from the task
-                task.update_one(pull__nonstatic_field_values = field_value)
-        if field_value_object.field.name == "Due Date":
-            if due_date is not None:
-                field_value_objects.update_one(set__value = due_date)
-        if field_value_object.field.name == "X Location":
-            field_value_objects.update_one(set__value = str(x_location))
-        if field_value_object.field.name == "Y Location":
-            field_value_objects.update_one(set__value = str(y_location))
+    if description is not None:
+        field_manager.set_field_value("Description", 0, description)
 
-    # get the tag Value Type
-    tag_value_type = ValueType.objects(name="Tag").first()
+    if due_date is not None:
+        field_manager.set_field_value("Due Date", 0, due_date)
 
-    # add the new tags to the task
-    for tag in new_tags:
-        tag_field = Field.objects(name=tag, value_type=tag_value_type).first() or createTagField(name=tag)
-        tag_field_value = FieldValue(value='True', field=tag_field, allowed_value=None)
-        tag_field_value.save()
-        task.update_one(push__nonstatic_field_values=tag_field_value)
+    if x_location is not None:
+        field_manager.set_field_value("X Location", 0, str(x_location))
 
-    # BUG: current version doesn't update workspaces properly so will need to update this
-    # get the workspace the task was originally assigned to
-    original_workspace = Workspace.objects(tasks__in = [task[0]]).first()
-    if original_workspace != None:
+    if y_location is not None:
+        field_manager.set_field_value("Y Location", 0, str(y_location))
+
+    if status is not None:
+        status_type, statuses = get_enum("Status")
+        status = statuses[status]
+        field_manager.set_field_value("Status", 0, status)
+
+    if tags is not None:
+        update_tags(field_manager, tags)
+
+    if workspace_id is not None:
+        original_workspace = Workspace.objects(tasks__in = [task]).first()
+        workspace = Workspace.objects(id=workspace_id).first()
+
         original_workspace_id = original_workspace.id.binary.hex()
-        if original_workspace_id != workspace_id: # if they aren't the same then update the workspace
-            original_workspace.update_one(pull__tasks = task[0])
-
-            workspace = Workspace.objects(id = workspace_id)
-            workspace.update_one(push__tasks = task[0])
+        if original_workspace_id != workspace_id:
+            original_workspace.update(pull__tasks=task)
+            workspace.update(push__tasks=task)
 
     return True
 

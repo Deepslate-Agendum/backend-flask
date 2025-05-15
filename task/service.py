@@ -8,13 +8,13 @@ def create(workspace_id: int, name: str, description: str, tags: list = None, du
     if tags is None: tags = []
     return task_dao.create(workspace_id, name, description, tags, due_date, x_location, y_location)
 
-def update(task_id: int, workspace_id: int, name: str = None, description: str = None, tags: list = None, due_date: datetime = None, x_location:float = 0, y_location:float = 0) -> bool:
+def update(task_id: int, workspace_id: int, name: str = None, description: str = None, tags: list = None, due_date: datetime = None, x_location:float = 0, y_location:float = 0, status: Optional[str] = None) -> bool:
     """Update a task."""
     if tags is None: tags = []
     if task_dao.get_by_id(task_id) is None:
         return False
 
-    return task_dao.update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location)
+    return task_dao.update(task_id, workspace_id, name, description, tags, due_date, x_location, y_location, status)
 
 def delete(task_id: int) -> bool:
     """Delete a task."""
