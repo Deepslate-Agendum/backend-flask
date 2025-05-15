@@ -2,10 +2,14 @@ import json
 
 from flask import Blueprint, jsonify, request
 import workspace.service as ws_service
+import base64
+import user_token.service as user_token_service
 
-bp = Blueprint('workspace', __name__, url_prefix='/workspace')
+workspaces_bp = Blueprint('workspaces', __name__, url_prefix='/workspace')
+workspace_bp = Blueprint('workspace', __name__, url_prefix='/<workspace_id>')
+workspaces_bp.register_blueprint(workspace_bp)
 
-@bp.route('/create', methods=['POST'])
+@workspaces_bp.route('/create', methods=['POST'])
 def create():
     name = request.json['name']
     owner = request.json['owner']
@@ -16,10 +20,14 @@ def create():
     else:
         return jsonify({"error": "Workspace name already in use"}), 409
 
-@bp.route('/', methods=['GET'])
-@bp.route('/<string:workspace_id>', methods=['GET'])
+@workspaces_bp.route('/', methods=['GET'])
+@workspace_bp.route('/', methods=['GET'])
 def get(workspace_id: str = None):
-    workspaces = ws_service.get(workspace_id)
+    user_token = request.headers.get('Authorization').split()[1]
+    user_token = base64.b64decode(user_token)
+    user_id = user_token_service.authenticate_token(user_token)
+
+    workspaces = ws_service.get(workspace_id, user_id)
 
     # HACK: same deal as in user
     if isinstance(workspaces, list):
@@ -29,18 +37,18 @@ def get(workspace_id: str = None):
 
     return jsonify({'workspaces': workspaces_json}), 200
 
-@bp.route('/update', methods=['PATCH'])
+@workspaces_bp.route('/update', methods=['PATCH'])
 def update():
-    workspace_id = request.json['id']
-    name = request.json['name']
-    owner = request.json['owner']
+    workspace_id = request.json['workspaceId']
+    username = request.json.get('username')
+    userid = request.json.get('userId')
 
-    if ws_service.update(workspace_id, name, owner):
+    if ws_service.update(workspace_id, username, userid):
         return "Success", 200
     else:
         return jsonify({"error": "Workspace not found"}), 404
 
-@bp.route('/delete', methods=['DELETE'])
+@workspaces_bp.route('/delete', methods=['DELETE'])
 def delete():
     workspace_id = request.json['id']
 

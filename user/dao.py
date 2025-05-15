@@ -5,6 +5,7 @@ from mongoengine.errors import (
     NotUniqueError,
 )
 
+from dao_shared import get_document_by_id
 from db_python_util.db_classes import User
 from db_python_util.db_helper import ConnectionManager
 from db_python_util.db_exceptions import (
@@ -16,7 +17,7 @@ from db_python_util.db_exceptions import (
 @ConnectionManager.requires_connection
 def get_by_id(id: str) -> User:
     try:
-        user = User.objects.with_id(id)
+        user = get_document_by_id(User, id)
     except ValidationError: # An ObjectId "must be a 12-byte input or a 24-character hex string", but front-end shouldn't need to care about that
         user = None
 
@@ -57,7 +58,7 @@ def create(name: str, password_hash: str, password_salt: str) -> str:
     return user.id.binary.hex()
 
 @ConnectionManager.requires_connection
-def update(id: str, name: str, password_hash: str):
+def updateName(id: str, name: str):
     user = get_by_id(id)
 
     user_with_name = get_by_username(name)
@@ -67,6 +68,12 @@ def update(id: str, name: str, password_hash: str):
     user.update(
         username=name,
         display_name=name, # TODO: we need a display name
+    )
+
+def updatePassword(id: str, password_hash: str):
+    user = get_by_id(id)
+
+    user.update(
         password_hash=password_hash,
     )
 

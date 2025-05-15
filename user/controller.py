@@ -1,3 +1,4 @@
+import base64
 import json
 
 from flask import Blueprint, jsonify, request
@@ -43,7 +44,7 @@ def create():
 
 @bp.route('/update', methods=['PATCH'])
 def update():
-    user_id = request.json['id']
+    user_id = request.json['user_id']
     username = request.json['username']
     password = request.json['password']
 
@@ -69,9 +70,10 @@ def login():
     password = request.json['password']
 
     user, token = user_service.login(username, password)
+    encoded_token = base64.b64encode(token).decode()
     return jsonify({
         "user": json.loads(user.to_json()),  # HACK: same as above, also TODO: if user is null, again depending on AGENDUM-62
-        "token": token,
+        "token": encoded_token,
     }), 200
 
 @bp.route('/logout', methods=['POST'])
